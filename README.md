@@ -13,6 +13,7 @@ A task management system implemented in Python. It supports task prioritization,
 - **Graceful Shutdown**: Handles `SIGINT`/`SIGTERM` signals to allow active tasks to finish and checkpoint.
 - **Structured Logging**: JSON-formatted logs with `trace_id` for production observability.
 - **Thread-safe**: Utilizes `ThreadPoolExecutor` and `threading.RLock` for safe concurrent execution.
+- **Type Safety & Validation**: Leverages Pydantic `BaseModel` for robust task configuration and state management.
 
 ## Installation
 
@@ -80,7 +81,11 @@ We use `threading.RLock` (Reentrant Lock) instead of a standard `Lock`. This is 
 
 ### Persistence Strategy: SQLite
 
-We chose SQLite for task state persistence (`StateStore` interface). SQLite provides ACID compliance and is zero-configuration (file-based), making it ideal for standardizing state across restarts without requiring an external database server. The `SQLiteStateStore` checkpoints task status, results, and retry counts, allowing for recovery after crashes.
+We chose SQLite for task state persistence (`StateStore` interface). SQLite provides ACID compliance and is zero-configuration (file-based), making it ideal for standardizing state across restarts without requiring an external database server. The `SQLiteStateStore` checkpoints task state by serializing Pydantic models to JSON, ensuring data schema integrity and easy recovery after crashes.
+
+### Model Validation: Pydantic
+
+We integrated Pydantic to handle the `Task` and `RetryPolicy` models. This choice replaces manual dictionary-heavy configuration with structured, type-hinted classes that provide automatic validation (e.g., ensuring `max_retries` is non-negative) and simplified (de)serialization for both logging and persistence.
 
 ### Signal Handling & Graceful Shutdown
 
