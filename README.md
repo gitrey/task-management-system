@@ -1,6 +1,6 @@
 # Task Management System
 
-A production-quality task management system implemented in Python. It supports task prioritization, dependency management in a Directed Acyclic Graph (DAG), and cascading cancellations.
+A task management system implemented in Python. It supports task prioritization, dependency management in a Directed Acyclic Graph (DAG), and cascading cancellations.
 
 ## Features
 
@@ -53,6 +53,24 @@ task_b = manager.get_task("B")
 print(f"Final State of B: {task_b.status}")
 print(f"Result of B: {task_b.result}")
 ```
+
+## Design Doc: Architecture & Trade-offs
+
+### Concurrency Model: Why `RLock` over `Lock`?
+
+We use `threading.RLock` (Reentrant Lock) instead of a standard `Lock`. This is critical because some internal methods in `TaskManager` (like `_cancel_task_cascade`) are called both from external entry points (which acquire the lock) and recursively from within other locked methods. Using an `RLock` allows the same thread to acquire the lock multiple times without deadlocking itself, simplifying implementation for nested operations like cascading cancellation.
+
+### Persistence Strategy: SQLite
+
+We chose SQLite for task state persistence (`StateStore` interface). SQLite provides ACID compliance and is zero-configuration (file-based), making it ideal for standardizing state across restarts without requiring an external database server. The `SQLiteStateStore` checkpoints task status, results, and retry counts, allowing for recovery after crashes.
+
+### Signal Handling & Graceful Shutdown
+
+The system implements handlers for `SIGINT` (Ctrl+C) and `SIGTERM`. Upon receiving these signals, the `TaskManager` sets a shutdown flag and stops dispatching new tasks. This ensures that active threads have a chance to complete their current unit of work and checkpoint their state before the process terminates.
+
+### Structured Logging
+
+Logging is implemented using JSON formats. This is a production standard as it allows automated log aggregators (like ELK or Datadog) to parse fields (`trace_id`, `task_id`, `event`) without complex regex, facilitating easier debugging in distributed or highly concurrent environments.
 
 ## Running Tests
 
