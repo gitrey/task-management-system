@@ -16,10 +16,10 @@ A task management system implemented in Python. It supports task prioritization,
 
 ## Installation
 
-Ensure you have Python 3.9 or higher installed.
+Ensure you have Python 3.9 or higher installed. Then, install dependencies:
 
 ```bash
-python3 -m pip install -e .
+python3 -m pip install -r requirements.txt
 ```
 
 ## Sample Usage
