@@ -136,3 +136,14 @@ def test_cycle_detection():
 
     with pytest.raises(TaskCycleError):
         manager.add_dependency("B", "A")
+
+
+def test_pydantic_validation():
+    from pydantic import ValidationError
+
+    # Verify RetryPolicy validation
+    with pytest.raises(ValidationError):
+        RetryPolicy(max_retries=-1)
+
+    with pytest.raises(ValidationError):
+        RetryPolicy(base_delay=0)

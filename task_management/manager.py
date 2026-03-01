@@ -85,7 +85,12 @@ class TaskManager:
         with self.lock:
             if task_id in self.tasks:
                 raise ValueError(f"Task {task_id} already exists")
-            task = Task(task_id, func, priority, retry_policy)
+            task = Task(
+                task_id=task_id,
+                func=func,
+                priority=priority,
+                retry_policy=retry_policy,
+            )
             self.tasks[task_id] = task
             if self.state_store:
                 self.state_store.save_task(task)

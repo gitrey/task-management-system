@@ -55,58 +55,43 @@ class SQLiteStateStore(StateStore):
                 """
                 CREATE TABLE IF NOT EXISTS tasks (
                     task_id TEXT PRIMARY KEY,
-                    status TEXT,
-                    priority INTEGER,
-                    dependencies TEXT,
-                    dependents TEXT,
-                    result TEXT,
-                    retries INTEGER
+                    data TEXT
                 )
             """
             )
 
     def save_task(self, task: Task):
-        """Persists a task's current state to the SQLite database.
+        """Persists a task's current state as JSON to the SQLite database.
 
         Args:
             task: The Task instance to save.
         """
+        # We exclude 'func' from serialization as it's not JSON serializable and should be re-attached on load
+        # However, Task holds 'func'. In a real scenario, you'd store the function path or registry name.
+        # For this system, we assume 'func' is provided or restored by the TaskManager.
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
-                """
-                INSERT OR REPLACE INTO tasks (task_id, status, priority, dependencies, dependents, result, retries)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-                (
-                    task.task_id,
-                    task.status.value,
-                    task.priority,
-                    json.dumps(list(task.dependencies)),
-                    json.dumps(list(task.dependents)),
-                    json.dumps(task.result) if task.result else None,
-                    task.retries,
-                ),
+                "INSERT OR REPLACE INTO tasks (task_id, data) VALUES (?, ?)",
+                (task.task_id, task.model_dump_json(exclude={"func", "error"})),
             )
 
     def load_tasks(self) -> Dict[str, dict]:
         """Loads all tasks from the SQLite database.
 
         Returns:
-            A dictionary mapping task IDs to task data.
+            A dictionary mapping task IDs to task data dictionaries.
         """
         tasks = {}
         try:
             with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("SELECT * FROM tasks")
+                cursor = conn.execute("SELECT data FROM tasks")
                 for row in cursor:
-                    tasks[row[0]] = {
-                        "status": TaskStatus(row[1]),
-                        "priority": row[2],
-                        "dependencies": set(json.loads(row[3])),
-                        "dependents": set(json.loads(row[4])),
-                        "result": json.loads(row[5]) if row[5] else None,
-                        "retries": row[6],
-                    }
+                    task_data = json.loads(row[0])
+                    # Ensure compatibility by casting back to enums and sets
+                    task_data["status"] = TaskStatus(task_data["status"])
+                    task_data["dependencies"] = set(task_data["dependencies"])
+                    task_data["dependents"] = set(task_data["dependents"])
+                    tasks[task_data["task_id"]] = task_data
         except sqlite3.OperationalError:
             pass
         return tasks

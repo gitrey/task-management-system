@@ -1,4 +1,7 @@
-class RetryPolicy:
+from pydantic import BaseModel, Field
+
+
+class RetryPolicy(BaseModel):
     """Configures exponential backoff retry strategy.
 
     Attributes:
@@ -7,19 +10,9 @@ class RetryPolicy:
         max_delay: Maximum possible delay in seconds.
     """
 
-    def __init__(
-        self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0
-    ):
-        """Initializes the retry policy.
-
-        Args:
-            max_retries: Maximum number of retries. Defaults to 3.
-            base_delay: Initial delay in seconds. Defaults to 1.0.
-            max_delay: Maximum delay in seconds. Defaults to 60.0.
-        """
-        self.max_retries = max_retries
-        self.base_delay = base_delay
-        self.max_delay = max_delay
+    max_retries: int = Field(default=3, ge=0)
+    base_delay: float = Field(default=1.0, gt=0)
+    max_delay: float = Field(default=60.0, gt=0)
 
     def get_delay(self, attempt: int) -> float:
         """Calculates delay for a given retry attempt using exponential backoff.

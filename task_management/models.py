@@ -20,7 +20,10 @@ class TaskCycleError(Exception):
     pass
 
 
-class Task:
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class Task(BaseModel):
     """Represents a single task in the system.
 
     Attributes:
@@ -37,34 +40,29 @@ class Task:
         trace_id: Unique UUID for tracing the task execution.
     """
 
-    def __init__(
-        self,
-        task_id: str,
-        func: Optional[Callable],
-        priority: int = 0,
-        retry_policy: Optional["RetryPolicy"] = None,
-    ):
-        """Initializes a new Task.
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-        Args:
-            task_id: Unique identifier for the task.
-            func: The callable to be executed.
-            priority: Numerical priority (lower is higher priority). Defaults to 0.
-            retry_policy: Retry configuration. Defaults to no retries.
-        """
-        from .retry import RetryPolicy  # Deferred import to avoid circular dependency
+    task_id: str
+    func: Optional[Callable] = None
+    priority: int = 0
+    status: TaskStatus = TaskStatus.PENDING
+    result: Any = None
+    error: Optional[Any] = None
+    dependencies: Set[str] = Field(default_factory=set)
+    dependents: Set[str] = Field(default_factory=set)
+    retries: int = 0
+    retry_policy: Optional[Any] = (
+        None  # Using Any to avoid circular import issues in type hint
+    )
+    trace_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
-        self.task_id = task_id
-        self.func = func
-        self.priority = priority
-        self.status = TaskStatus.PENDING
-        self.result: Any = None
-        self.error: Optional[Exception] = None
-        self.dependencies: Set[str] = set()
-        self.dependents: Set[str] = set()
-        self.retries = 0
-        self.retry_policy = retry_policy or RetryPolicy(max_retries=0)
-        self.trace_id = str(uuid.uuid4())
+    def __init__(self, **data: Any):
+        """Initializes a new Task with Pydantic validation."""
+        super().__init__(**data)
+        if self.retry_policy is None:
+            from .retry import RetryPolicy
+
+            self.retry_policy = RetryPolicy(max_retries=0)
 
     def __lt__(self, other: "Task") -> bool:
         """Determines priority ordering between two tasks.
