@@ -1,188 +1,15 @@
-"""Task Management System with DAG, Priorities, and Cascading Cancellation.
-
-This module provides a robust TaskManager for executing tasks according to a
-Directed Acyclic Graph (DAG). It supports task prioritization, circular
-dependency detection, automatic cascading cancellation, exponential backoff
-retries, structured JSON logging, and SQLite state persistence.
-"""
-
-import enum
 import threading
 import heapq
 import time
-import json
 import logging
-import uuid
-import sqlite3
 import signal
-import sys
-from abc import ABC, abstractmethod
-from typing import Callable, Any, Dict, List, Set, Optional, Union
+from typing import Callable, Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor, Future
 
-
-class TaskStatus(enum.Enum):
-    """Enumeration of possible task states."""
-
-    PENDING = "PENDING"
-    RUNNING = "RUNNING"
-    COMPLETED = "COMPLETED"
-    FAILED = "FAILED"
-    CANCELLED = "CANCELLED"
-    RETRYING = "RETRYING"
-
-
-class TaskCycleError(Exception):
-    """Raised when a circular dependency is detected."""
-
-    pass
-
-
-class StructuredLogger:
-    """Provides JSON-structured logging for observability."""
-
-    def __init__(self, name: str = "TaskManager"):
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(logging.INFO)
-        if not self.logger.handlers:
-            handler = logging.StreamHandler(sys.stdout)
-            formatter = logging.Formatter("%(message)s")
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-
-    def log(self, level: int, event: str, **kwargs):
-        """Logs a structured JSON message."""
-        record = {
-            "timestamp": time.time(),
-            "level": logging.getLevelName(level),
-            "event": event,
-            **kwargs,
-        }
-        self.logger.log(level, json.dumps(record))
-
-
-class RetryPolicy:
-    """Configures exponential backoff retry strategy."""
-
-    def __init__(
-        self, max_retries: int = 3, base_delay: float = 1.0, max_delay: float = 60.0
-    ):
-        self.max_retries = max_retries
-        self.base_delay = base_delay
-        self.max_delay = max_delay
-
-    def get_delay(self, attempt: int) -> float:
-        """Calculates delay for a given retry attempt."""
-        delay = self.base_delay * (2 ** (attempt - 1))
-        return min(delay, self.max_delay)
-
-
-class StateStore(ABC):
-    """Interface for task state persistence."""
-
-    @abstractmethod
-    def save_task(self, task: "Task"):
-        pass
-
-    @abstractmethod
-    def load_tasks(self) -> Dict[str, dict]:
-        pass
-
-    @abstractmethod
-    def clear(self):
-        pass
-
-
-class SQLiteStateStore(StateStore):
-    """SQLite implementation of TaskStateStore."""
-
-    def __init__(self, db_path: str = "tasks.db"):
-        self.db_path = db_path
-        self._init_db()
-
-    def _init_db(self):
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS tasks (
-                    task_id TEXT PRIMARY KEY,
-                    status TEXT,
-                    priority INTEGER,
-                    dependencies TEXT,
-                    dependents TEXT,
-                    result TEXT,
-                    retries INTEGER
-                )
-            """
-            )
-
-    def save_task(self, task: "Task"):
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO tasks (task_id, status, priority, dependencies, dependents, result, retries)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-                (
-                    task.task_id,
-                    task.status.value,
-                    task.priority,
-                    json.dumps(list(task.dependencies)),
-                    json.dumps(list(task.dependents)),
-                    json.dumps(task.result) if task.result else None,
-                    task.retries,
-                ),
-            )
-
-    def load_tasks(self) -> Dict[str, dict]:
-        tasks = {}
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("SELECT * FROM tasks")
-                for row in cursor:
-                    tasks[row[0]] = {
-                        "status": TaskStatus(row[1]),
-                        "priority": row[2],
-                        "dependencies": set(json.loads(row[3])),
-                        "dependents": set(json.loads(row[4])),
-                        "result": json.loads(row[5]) if row[5] else None,
-                        "retries": row[6],
-                    }
-        except sqlite3.OperationalError:
-            pass
-        return tasks
-
-    def clear(self):
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute("DELETE FROM tasks")
-
-
-class Task:
-    """Represents a single task in the system."""
-
-    def __init__(
-        self,
-        task_id: str,
-        func: Optional[Callable],
-        priority: int = 0,
-        retry_policy: Optional[RetryPolicy] = None,
-    ):
-        self.task_id = task_id
-        self.func = func
-        self.priority = priority
-        self.status = TaskStatus.PENDING
-        self.result: Any = None
-        self.error: Optional[Exception] = None
-        self.dependencies: Set[str] = set()
-        self.dependents: Set[str] = set()
-        self.retries = 0
-        self.retry_policy = retry_policy or RetryPolicy(max_retries=0)
-        self.trace_id = str(uuid.uuid4())
-
-    def __lt__(self, other: "Task") -> bool:
-        if self.priority == other.priority:
-            return self.task_id < other.task_id
-        return self.priority < other.priority
+from .models import TaskStatus, Task, TaskCycleError
+from .logging import StructuredLogger
+from .persistence import StateStore
+from .retry import RetryPolicy
 
 
 class TaskManager:
@@ -405,3 +232,15 @@ class TaskManager:
     def shutdown(self, wait: bool = True):
         self._is_running = False
         self.executor.shutdown(wait=wait)
+
+    def get_task(self, task_id: str) -> Optional[Task]:
+        """Retrieves a task from the manager.
+
+        Args:
+            task_id: Unique identifier for the task.
+
+        Returns:
+            The Task object if found, else None.
+        """
+        with self.lock:
+            return self.tasks.get(task_id)
