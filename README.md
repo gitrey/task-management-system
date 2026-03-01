@@ -7,7 +7,11 @@ A task management system implemented in Python. It supports task prioritization,
 - **DAG-based Scheduling**: Tasks are executed based on their dependencies.
 - **Priority Queue**: Tasks ready for execution are prioritized based on a user-defined priority level.
 - **Cycle Detection**: Automatically detects and prevents circular dependencies.
-- **Cascading Cancellation**: If a task fails or is manually cancelled, all dependent tasks are automatically cancelled.
+- **Cascaded Cancellation**: If a task fails or is manually cancelled, all dependent tasks are automatically cancelled.
+- **Retry Policies**: Configurable exponential backoff for transient failure recovery.
+- **State Persistence**: SQLite-based checkpointing allows resuming the DAG after crashes or restarts.
+- **Graceful Shutdown**: Handles `SIGINT`/`SIGTERM` signals to allow active tasks to finish and checkpoint.
+- **Structured Logging**: JSON-formatted logs with `trace_id` for production observability.
 - **Thread-safe**: Utilizes `ThreadPoolExecutor` and `threading.RLock` for safe concurrent execution.
 
 ## Installation
