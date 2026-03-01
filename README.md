@@ -22,6 +22,20 @@ Ensure you have Python 3.9 or higher installed. Then, install dependencies:
 python3 -m pip install -r requirements.txt
 ```
 
+## Project Structure
+
+The project is organized into a modular package structure:
+
+- `task_management/`: Core package directory.
+  - `__init__.py`: Public API entry point.
+  - `manager.py`: Main `TaskManager` execution logic.
+  - `models.py`: Task descriptions, enums, and specific error types.
+  - `persistence.py`: State management and SQLite backing.
+  - `retry.py`: Exponential backoff and retry policy logic.
+  - `logging.py`: Structured JSON logging implementation.
+- `test_task_management.py`: Comprehensive test suite.
+- `requirements.txt`: Project dependencies.
+
 ## Sample Usage
 
 ```python
