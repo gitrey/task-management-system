@@ -40,37 +40,43 @@ The project is organized into a modular package structure:
 ## Sample Usage
 
 ```python
-from task_management import TaskManager, TaskStatus
+from task_management import TaskManager, TaskStatus, RetryPolicy, SQLiteStateStore
 import time
 
-# Initialize manager with 2 concurrent workers
-manager = TaskManager(max_workers=2)
+# 1. Initialize with Persistence (optional)
+store = SQLiteStateStore("my_tasks.db")
+manager = TaskManager(max_workers=2, state_store=store)
 
-def slow_task():
-    print("Starting slow task...")
-    time.sleep(1)
-    return "Result of A"
+# 2. Define a task with a Retry Policy
+# This task will retry up to 3 times with exponential backoff if it fails
+policy = RetryPolicy(max_retries=3, base_delay=1.0)
+
+def unstable_task():
+    print("Executing unstable task...")
+    # Simulate transient failure
+    if not hasattr(unstable_task, "failed"):
+        unstable_task.failed = True
+        raise ValueError("Temporary glitch!")
+    return "Stable result"
 
 def dependent_task():
     task_a = manager.get_task("A")
     print(f"Task B starting after Task A finished with: {task_a.result}")
-    return "Result of B"
+    return "Final Output"
 
-# Add tasks
-manager.add_task("A", slow_task, priority=1)
-manager.add_task("B", dependent_task, priority=0)
-
-# Add dependency: B depends on A
+# 3. Add tasks and dependencies
+manager.add_task("A", unstable_task, retry_policy=policy)
+manager.add_task("B", dependent_task)
 manager.add_dependency("A", "B")
 
-# Execute all
+# 4. Execute all (respects DAG and retries)
 print("Executing DAG...")
 manager.execute_all()
 
-# Check results
+# 5. Check results (Type-safe access via Pydantic model)
 task_b = manager.get_task("B")
-print(f"Final State of B: {task_b.status}")
-print(f"Result of B: {task_b.result}")
+if task_b and task_b.status == TaskStatus.COMPLETED:
+    print(f"Success! Result: {task_b.result}")
 ```
 
 ## Architecture & Trade-offs
