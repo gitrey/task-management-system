@@ -21,7 +21,21 @@ class TaskCycleError(Exception):
 
 
 class Task:
-    """Represents a single task in the system."""
+    """Represents a single task in the system.
+
+    Attributes:
+        task_id: Unique identifier for the task.
+        func: The callable to be executed.
+        priority: Numerical priority (lower is higher priority).
+        status: Current state of the task.
+        result: Return value of the task after successful execution.
+        error: Caught exception if the task failed.
+        dependencies: Set of task IDs that this task depends on.
+        dependents: Set of task IDs that depend on this task.
+        retries: Number of retry attempts made so far.
+        retry_policy: Configuration for retry behavior.
+        trace_id: Unique UUID for tracing the task execution.
+    """
 
     def __init__(
         self,
@@ -30,6 +44,14 @@ class Task:
         priority: int = 0,
         retry_policy: Optional["RetryPolicy"] = None,
     ):
+        """Initializes a new Task.
+
+        Args:
+            task_id: Unique identifier for the task.
+            func: The callable to be executed.
+            priority: Numerical priority (lower is higher priority). Defaults to 0.
+            retry_policy: Retry configuration. Defaults to no retries.
+        """
         from .retry import RetryPolicy  # Deferred import to avoid circular dependency
 
         self.task_id = task_id
@@ -45,6 +67,14 @@ class Task:
         self.trace_id = str(uuid.uuid4())
 
     def __lt__(self, other: "Task") -> bool:
+        """Determines priority ordering between two tasks.
+
+        Args:
+            other: The other task to compare against.
+
+        Returns:
+            True if this task has higher priority (lower priority number).
+        """
         if self.priority == other.priority:
             return self.task_id < other.task_id
         return self.priority < other.priority

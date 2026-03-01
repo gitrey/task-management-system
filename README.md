@@ -72,7 +72,7 @@ print(f"Final State of B: {task_b.status}")
 print(f"Result of B: {task_b.result}")
 ```
 
-## Design Doc: Architecture & Trade-offs
+## Architecture & Trade-offs
 
 ### Concurrency Model: Why `RLock` over `Lock`?
 

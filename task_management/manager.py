@@ -13,9 +13,25 @@ from .retry import RetryPolicy
 
 
 class TaskManager:
-    """Manager for scheduling and executing tasks with enhancements."""
+    """Manager for scheduling and executing tasks with enhancements.
+
+    Attributes:
+        tasks: Dictionary of task IDs to Task objects.
+        max_workers: Maximum number of concurrent threads.
+        lock: Reentrant lock for thread safety.
+        executor: ThreadPoolExecutor for task execution.
+        futures: Mapping of task IDs to their running futures.
+        logger: Structured logger instance.
+        state_store: Optional persistent storage for task states.
+    """
 
     def __init__(self, max_workers: int = 4, state_store: Optional[StateStore] = None):
+        """Initializes the TaskManager.
+
+        Args:
+            max_workers: Maximum number of worker threads. Defaults to 4.
+            state_store: Optional StateStore implementation for persistence.
+        """
         self.tasks: Dict[str, Task] = {}
         self.max_workers = max_workers
         self.lock = threading.RLock()
@@ -32,6 +48,12 @@ class TaskManager:
         signal.signal(signal.SIGTERM, self._handle_signal)
 
     def _handle_signal(self, signum, frame):
+        """Internal signal handler for graceful shutdown.
+
+        Args:
+            signum: The signal number received.
+            frame: The current stack frame.
+        """
         self.logger.log(
             logging.WARNING,
             "Signal received, initiating graceful shutdown",
@@ -49,6 +71,17 @@ class TaskManager:
         priority: int = 0,
         retry_policy: Optional[RetryPolicy] = None,
     ) -> None:
+        """Adds a new task to the system.
+
+        Args:
+            task_id: Unique identifier for the task.
+            func: The callable to be executed.
+            priority: Numerical priority (lower is higher priority). Defaults to 0.
+            retry_policy: Optional retry configuration.
+
+        Raises:
+            ValueError: If a task with the same ID already exists.
+        """
         with self.lock:
             if task_id in self.tasks:
                 raise ValueError(f"Task {task_id} already exists")
@@ -65,6 +98,16 @@ class TaskManager:
             )
 
     def add_dependency(self, from_task_id: str, to_task_id: str) -> None:
+        """Adds a dependency relationship between two tasks.
+
+        Args:
+            from_task_id: The task ID that must complete first.
+            to_task_id: The task ID that depends on the completion of from_task_id.
+
+        Raises:
+            ValueError: If either task ID does not exist.
+            TaskCycleError: If the dependency would create a circular reference.
+        """
         with self.lock:
             if from_task_id not in self.tasks or to_task_id not in self.tasks:
                 raise ValueError("Both tasks must exist before adding a dependency")
@@ -84,6 +127,15 @@ class TaskManager:
             )
 
     def _will_create_cycle(self, from_id: str, to_id: str) -> bool:
+        """Checks if adding a dependency would create a cycle.
+
+        Args:
+            from_id: ID of the dependency.
+            to_id: ID of the dependent task.
+
+        Returns:
+            True if a cycle would be created, else False.
+        """
         visited = set()
         stack = [to_id]
         while stack:
@@ -96,11 +148,21 @@ class TaskManager:
         return False
 
     def cancel_task(self, task_id: str):
+        """Manually cancels a task and cascades to its dependents.
+
+        Args:
+            task_id: The unique identifier of the task to cancel.
+        """
         with self.lock:
             self._cancel_task_cascade(task_id)
             self._condition.notify_all()
 
     def _cancel_task_cascade(self, task_id: str):
+        """Recursively cancels a task and all tasks that depend on it.
+
+        Args:
+            task_id: The unique identifier of the task to cancel.
+        """
         task = self.tasks.get(task_id)
         if not task or task.status in (
             TaskStatus.COMPLETED,
@@ -123,6 +185,11 @@ class TaskManager:
             self._cancel_task_cascade(dep_id)
 
     def _get_ready_tasks(self) -> List[Task]:
+        """Identifies tasks whose dependencies are met and are ready to run.
+
+        Returns:
+            A prioritized list of ready Tasks.
+        """
         ready = []
         for task in self.tasks.values():
             if task.status in (TaskStatus.PENDING, TaskStatus.RETRYING):
@@ -140,6 +207,13 @@ class TaskManager:
         return result
 
     def _task_wrapper(self, task_id: str):
+        """Worker wrapper around task execution.
+
+        Handles retries, logging, and status updates.
+
+        Args:
+            task_id: The unique identifier of the task to execute.
+        """
         with self.lock:
             task = self.tasks[task_id]
             if task.status != TaskStatus.RUNNING:
@@ -193,11 +267,21 @@ class TaskManager:
                 self._condition.notify_all()
 
     def _mark_ready(self, task_id: str):
+        """Timer callback to wake up the manager for a retrying task.
+
+        Args:
+            task_id: The unique identifier of the task now ready for retry.
+        """
         with self.lock:
             if self.tasks[task_id].status == TaskStatus.RETRYING:
                 self._condition.notify_all()
 
     def execute_all(self, timeout: Optional[float] = None):
+        """Executes all tasks in the DAG concurrently while respecting dependencies.
+
+        Args:
+            timeout: Optional maximum time in seconds to run. Defaults to None (wait indefinitely).
+        """
         self._is_running = True
         start_time = time.time()
 
@@ -230,6 +314,11 @@ class TaskManager:
             self.logger.log(logging.INFO, "Shutdown sequence complete")
 
     def shutdown(self, wait: bool = True):
+        """Signals the manager to stop and shuts down the executor.
+
+        Args:
+            wait: Whether to wait for active tasks to finish. Defaults to True.
+        """
         self._is_running = False
         self.executor.shutdown(wait=wait)
 

@@ -10,25 +10,46 @@ class StateStore(ABC):
 
     @abstractmethod
     def save_task(self, task: Task):
+        """Saves the state of a task.
+
+        Args:
+            task: The Task instance to persist.
+        """
         pass
 
     @abstractmethod
     def load_tasks(self) -> Dict[str, dict]:
+        """Loads all persisted tasks.
+
+        Returns:
+            A dictionary mapping task IDs to their stored attribute dictionaries.
+        """
         pass
 
     @abstractmethod
     def clear(self):
+        """Clears all persisted task state."""
         pass
 
 
 class SQLiteStateStore(StateStore):
-    """SQLite implementation of TaskStateStore."""
+    """SQLite implementation of TaskStateStore.
+
+    Attributes:
+        db_path: Path to the SQLite database file.
+    """
 
     def __init__(self, db_path: str = "tasks.db"):
+        """Initializes the SQLite state store.
+
+        Args:
+            db_path: Path to the SQLite database file. Defaults to "tasks.db".
+        """
         self.db_path = db_path
         self._init_db()
 
     def _init_db(self):
+        """Initializes the database schema if it doesn't exist."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
@@ -45,6 +66,11 @@ class SQLiteStateStore(StateStore):
             )
 
     def save_task(self, task: Task):
+        """Persists a task's current state to the SQLite database.
+
+        Args:
+            task: The Task instance to save.
+        """
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
@@ -63,6 +89,11 @@ class SQLiteStateStore(StateStore):
             )
 
     def load_tasks(self) -> Dict[str, dict]:
+        """Loads all tasks from the SQLite database.
+
+        Returns:
+            A dictionary mapping task IDs to task data.
+        """
         tasks = {}
         try:
             with sqlite3.connect(self.db_path) as conn:
@@ -81,5 +112,6 @@ class SQLiteStateStore(StateStore):
         return tasks
 
     def clear(self):
+        """Removes all data from the tasks table."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("DELETE FROM tasks")
