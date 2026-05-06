@@ -26,4 +26,9 @@
 - [ ] **F-0003: Team Process Retrospective & Agent Protocol Improvements (GENDEV-92)**
   - **Priority:** P2
   - **Spec:** [spec](docs/specs/F-0003-retrospective-improvements.md)
-  - **Status:** APPROVED
+  - **Status:** IN PROGRESS
+  - **Tasks:**
+    - [/] Create `docs/TEAM_PROTOCOLS.md` with standardized git and communication rules (Assigned: SWE-1)
+    - [/] Refine `docs/BACKLOG.md` structure to support granular sub-task tracking (Assigned: TPM)
+    - [ ] Brief all agents on new role refinements and sync protocols (Assigned: TPM)
+
