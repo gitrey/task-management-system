@@ -13,11 +13,11 @@ Currently, the Task Management System is only accessible via Python code and CLI
 2. The page must include the project name "Task Management System".
 3. The page must include a project description section based on the README.
 4. The page must include a "Key Features" section highlighting:
- - DAG-based Scheduling
- - Priority Queue
- - Cycle Detection
- - Cascaded Cancellation
- - State Persistence
+    - DAG-based Scheduling
+    - Priority Queue
+    - Cycle Detection
+    - Cascaded Cancellation
+    - State Persistence
 5. The page must include a "Project Structure" section.
 6. The page must include a "Sample Usage" section with code highlighting.
 7. Use a clean, professional styling (e.g., a modern CSS framework or custom CSS).
