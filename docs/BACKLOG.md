@@ -23,7 +23,7 @@
     - [x] Final verification of design and responsiveness (SWE-Test)
 
 ## Milestone 3: Process Optimization
-- [ ] **F-0003: Team Process Retrospective & Agent Protocol Improvements**
+- [ ] **F-0003: Team Process Retrospective & Agent Protocol Improvements (GENDEV-92)**
   - **Priority:** P2
   - **Spec:** [spec](docs/specs/F-0003-retrospective-improvements.md)
   - **Status:** APPROVED

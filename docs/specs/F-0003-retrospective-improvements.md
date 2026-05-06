@@ -24,4 +24,4 @@ During the execution of Milestones 1 and 2, several minor friction points were i
 - [ ] No merge conflicts in `docs/BACKLOG.md` for at least one full feature cycle.
 
 ## JIRA Issue
-- [TBD]
+- [GENDEV-92](https://genai4dev.atlassian.net/browse/GENDEV-92)
