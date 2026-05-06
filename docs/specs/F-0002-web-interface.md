@@ -36,3 +36,6 @@ Currently, the Task Management System is only accessible via Python code and CLI
 
 ## Dependencies
 - None (static HTML/CSS/JS).
+
+## JIRA Issue
+- [GENDEV-91](https://your-domain.atlassian.net/browse/GENDEV-91)
