@@ -6,6 +6,6 @@
   - **Scope:** Complete coverage of `task_management/` package.
   - **Dependencies:** `pytest`, `pytest-cov`
   - **Spec:** [spec](docs/specs/F-0001-increase-test-coverage.md)
-  - **Status:** READY
+  - **Status:** IN PROGRESS
   - **Assigned:** SWE-1
 
