@@ -3,7 +3,7 @@
 - **JIRA ID:** GENDEV-91
 - **Type:** Feature
 - **Priority:** P1
-- **Status:** Approved
+- **Status:** Completed
 
 ## Problem
 Currently, the Task Management System is only accessible via Python code and CLI. There is no visual representation of the project description or its key functionality for non-technical stakeholders or for a quick overview.

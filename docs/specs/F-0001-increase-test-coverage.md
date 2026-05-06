@@ -2,7 +2,7 @@
 
 - **Type:** Enhancement
 - **Priority:** P1
-- **Status:** Approved
+- **Status:** Completed
 
 ## Problem
 The current test suite covers the main functional paths, but the overall coverage is unknown and likely below the target of 90%. To ensure robustness and prevent regressions, we need to reach a high level of test coverage across all modules.
