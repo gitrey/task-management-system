@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <h1>Task Management System</h1>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#structure">Structure</a></li>
+                <li><a href="#usage">Usage</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section id="about">
+            <h2>Project Overview</h2>
+            <p>A task management system implemented in Python. It supports task prioritization, dependency management in a Directed Acyclic Graph (DAG), and cascading cancellations.</p>
+        </section>
+
+        <section id="features">
+            <h2>Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>DAG-based Scheduling</h3>
+                    <p>Tasks are executed based on their dependencies, ensuring correct order of operations.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Priority Queue</h3>
+                    <p>Tasks ready for execution are prioritized based on a user-defined priority level.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Cycle Detection</h3>
+                    <p>Automatically detects and prevents circular dependencies to avoid infinite loops.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Cascaded Cancellation</h3>
+                    <p>If a task fails or is manually cancelled, all dependent tasks are automatically cancelled.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Retry Policies</h3>
+                    <p>Configurable exponential backoff for transient failure recovery.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>State Persistence</h3>
+                    <p>SQLite-based checkpointing allows resuming the DAG after crashes or restarts.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="structure">
+            <h2>Project Structure</h2>
+            <div class="structure-content">
+                <p>The project is organized into a modular package structure:</p>
+                <pre><code>
+task_management/
+├── __init__.py      # Public API entry point
+├── manager.py       # Main TaskManager execution logic
+├── models.py        # Task descriptions, enums, and specific error types
+├── persistence.py   # State management and SQLite backing
+├── retry.py         # Exponential backoff and retry policy logic
+└── logging.py       # Structured JSON logging implementation
+                </code></pre>
+            </div>
+        </section>
+
+        <section id="usage">
+            <h2>Sample Usage</h2>
+            <div class="code-container">
+                <pre><code class="language-python">
+from task_management import TaskManager, TaskStatus, RetryPolicy, SQLiteStateStore
+import time
+
+# 1. Initialize with Persistence (optional)
+store = SQLiteStateStore("my_tasks.db")
+manager = TaskManager(max_workers=2, state_store=store)
+
+# 2. Define a task with a Retry Policy
+policy = RetryPolicy(max_retries=3, base_delay=1.0)
+
+def unstable_task():
+    print("Executing unstable task...")
+    if not hasattr(unstable_task, "failed"):
+        unstable_task.failed = True
+        raise ValueError("Temporary glitch!")
+    return "Stable result"
+
+def dependent_task():
+    task_a = manager.get_task("A")
+    print(f"Task B starting after Task A finished with: {task_a.result}")
+    return "Final Output"
+
+# 3. Add tasks and dependencies
+manager.add_task("A", unstable_task, retry_policy=policy)
+manager.add_task("B", dependent_task)
+manager.add_dependency("A", "B")
+
+# 4. Execute all
+manager.execute_all()
+
+# 5. Check results
+task_b = manager.get_task("B")
+if task_b and task_b.status == TaskStatus.COMPLETED:
+    print(f"Success! Result: {task_b.result}")
+                </code></pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Task Management System Project</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
