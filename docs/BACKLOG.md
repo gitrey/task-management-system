@@ -1,7 +1,7 @@
 # Backlog
 
 ## Milestone 1: Initial Release
-- [x] **F-0001: Increase test coverage to 90%**
+- [x] **F-0001: Increase test coverage to 90% (GENDEV-90)**
   - **Priority:** P1
   - **Scope:** Complete coverage of `task_management/` package.
   - **Dependencies:** `pytest`, `pytest-cov`
