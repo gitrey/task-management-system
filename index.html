@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Task Management System - A robust Python-based task execution engine with DAG scheduling, priority queuing, and state persistence.">
+    <title>Task Management System | Modern Python DAG Engine</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <a href="#" class="logo">TaskMS</a>
+            <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <ul class="nav-links">
+                <li><a href="#hero">About</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#structure">Structure</a></li>
+                <li><a href="#usage">Usage</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <section id="hero">
+            <div class="container">
+                <h1>Task Management System</h1>
+                <p>A robust task execution engine implemented in Python. It supports task prioritization, dependency management in a Directed Acyclic Graph (DAG), and cascading cancellations.</p>
+                <div class="cta">
+                    <a href="#usage" class="btn btn-primary">View Sample Usage</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features">
+            <div class="container">
+                <h2>Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>DAG-based Scheduling</h3>
+                        <p>Tasks are executed based on their dependencies, ensuring correct execution order in complex workflows.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Priority Queue</h3>
+                        <p>Tasks ready for execution are prioritized based on user-defined priority levels for efficient resource allocation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Cycle Detection</h3>
+                        <p>Automatically detects and prevents circular dependencies, maintaining the integrity of your task graphs.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Cascaded Cancellation</h3>
+                        <p>If a task fails or is manually cancelled, all dependent tasks are automatically cancelled to prevent inconsistent states.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>State Persistence</h3>
+                        <p>SQLite-based checkpointing allows resuming the DAG execution seamlessly after crashes or system restarts.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>Retry Policies</h3>
+                        <p>Configurable exponential backoff for transient failure recovery, making your automation resilient.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="structure">
+            <div class="container">
+                <h2>Project Structure</h2>
+                <div class="structure-content">
+                    <p>The project is organized into a modular package structure:</p>
+                    <ul class="tree">
+                        <li>task_management/
+                            <ul>
+                                <li>__init__.py — Public API entry point</li>
+                                <li>manager.py — Main TaskManager execution logic</li>
+                                <li>models.py — Task descriptions, enums, and specific error types</li>
+                                <li>persistence.py — State management and SQLite backing</li>
+                                <li>retry.py — Exponential backoff and retry policy logic</li>
+                                <li>logging.py — Structured JSON logging implementation</li>
+                            </ul>
+                        </li>
+                        <li>test_task_management.py — Comprehensive test suite</li>
+                        <li>requirements.txt — Project dependencies</li>
+                        <li>README.md — Project overview</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="usage">
+            <div class="container">
+                <h2>Sample Usage</h2>
+                <pre><code class="language-python">from task_management import TaskManager, TaskStatus, RetryPolicy, SQLiteStateStore
+import time
+
+# 1. Initialize with Persistence (optional)
+store = SQLiteStateStore("my_tasks.db")
+manager = TaskManager(max_workers=2, state_store=store)
+
+# 2. Define a task with a Retry Policy
+policy = RetryPolicy(max_retries=3, base_delay=1.0)
+
+def unstable_task():
+    print("Executing unstable task...")
+    if not hasattr(unstable_task, "failed"):
+        unstable_task.failed = True
+        raise ValueError("Temporary glitch!")
+    return "Stable result"
+
+def dependent_task():
+    task_a = manager.get_task("A")
+    print(f"Task B starting after Task A finished with: {task_a.result}")
+    return "Final Output"
+
+# 3. Add tasks and dependencies
+manager.add_task("A", unstable_task, retry_policy=policy)
+manager.add_task("B", dependent_task)
+manager.add_dependency("A", "B")
+
+# 4. Execute all (respects DAG and retries)
+print("Executing DAG...")
+manager.execute_all()
+
+# 5. Check results
+task_b = manager.get_task("B")
+if task_b and task_b.status == TaskStatus.COMPLETED:
+    print(f"Success! Result: {task_b.result}")</code></pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Task Management System. Built for reliability and performance.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
