@@ -1,9 +1,9 @@
 # F-0002: Web Interface
 
+- **JIRA ID:** [GENDEV-91](https://genai4dev.atlassian.net/browse/GENDEV-91)
 - **Type:** Feature
 - **Priority:** P1
-- **Status:** Approved
-- **JIRA Ticket:** [GENDEV-91](https://genai4dev.atlassian.net/browse/GENDEV-91)
+- **Status:** Completed
 
 ## Problem
 Currently, the Task Management System is only accessible via Python code and CLI. There is no visual representation of the project description or its key functionality for non-technical stakeholders or for a quick overview.
@@ -24,11 +24,11 @@ Currently, the Task Management System is only accessible via Python code and CLI
 8. Ensure the page is mobile-friendly.
 
 ## Acceptance Criteria
-- [ ] Landing page is accessible via `index.html`.
-- [ ] Project description is accurately reflected from the README.
-- [ ] Key features are listed and clearly explained.
-- [ ] Code snippets in "Sample Usage" are readable and formatted.
-- [ ] Page layout adjusts correctly on different screen sizes (mobile, tablet, desktop).
+- [x] Landing page is accessible via `index.html`.
+- [x] Project description is accurately reflected from the README.
+- [x] Key features are listed and clearly explained.
+- [x] Code snippets in "Sample Usage" are readable and formatted.
+- [x] Page layout adjusts correctly on different screen sizes (mobile, tablet, desktop).
 
 ## Out of Scope
 - Backend integration (this is a static landing page for now).
