@@ -9,3 +9,16 @@
   - **Status:** COMPLETED
   - **Assigned:** SWE-1
 
+## Milestone 2: Web Presence
+- [ ] **F-0002: Web Interface (GENDEV-91)**
+  - **Priority:** P1
+  - **Scope:** Responsive landing page `index.html` with project details, features, structure, and sample usage.
+  - **Dependencies:** None
+  - **Spec:** [spec](docs/specs/F-0002-web-interface.md)
+  - **Status:** IN PROGRESS
+  - **Tasks:**
+    - [/] Create `index.html` with full content and SEO metadata (SWE-1)
+    - [/] Create `style.css` for modern, responsive styling and typography (SWE-2)
+    - [/] Add `script.js` for code syntax highlighting and UI interactions (SWE-2)
+    - [ ] Final verification of design and responsiveness (SWE-Test)
+
