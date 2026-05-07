@@ -121,15 +121,16 @@
     - [x] Create Login page and session management in the frontend (SWE-2)
     - [x] Add project selection and management UI (SWE-2)
     - [x] Run security scan for authentication bypass vulnerabilities (Secops-1)
-- [x] **F-0010: Observability (GENDEV-100)**
+- [ ] **F-0010: Observability (GENDEV-100)**
   - **Priority:** P2
   - **Scope:** Prometheus metrics and Grafana dashboard.
   - **Dependencies:** Infrastructure support
   - **Spec:** [spec](docs/specs/F-0010-observability.md)
-  - **Status:** COMPLETED
+  - **Status:** IN PROGRESS
   - **Tasks:**
     - [x] Integrate `prometheus_client` and define core system metrics (SWE-1)
     - [x] Implement `/metrics` endpoint in FastAPI (SWE-1)
     - [x] Add resource monitoring (CPU/RAM) to TaskManager (SWE-1)
     - [x] Create Prometheus configuration and Grafana dashboard JSON (SRE-1)
+    - [ ] Finalize backend metrics alignment with SLO specs (SWE-1)
     - [x] Verify metrics accuracy during high-concurrency load (Perf-Test)

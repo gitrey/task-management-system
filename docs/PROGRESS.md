@@ -57,3 +57,9 @@
   - **Security & Multi-tenancy (F-0009)**: Implemented Login overlay, session management, and project selection UI.
   - Refined `style.css` and `script.js` to support new interactive dashboard components.
 - Transitioned JIRA tickets for F-0007, F-0008, and F-0009 to IN PROGRESS.
+- SRE-1 configured Milestone 4 Observability stack (F-0010):
+  - Created Prometheus configuration in `monitoring/prometheus/prometheus.yml`.
+  - Developed a comprehensive Grafana dashboard in `monitoring/grafana/dashboards/task_manager.json` covering task execution rates, latency, queue depth, and process resource usage (CPU/Memory).
+  - Aligned dashboard with the application-side metrics implementation from `scion/tpm`.
+  - Pushed the observability stack to the `scion/tpm` integration branch as requested.
+  - Formulated SLIs/SLOs in `docs/reliability/SLO.md` and initiated alignment of `/healthz` and `/readyz` endpoints.
