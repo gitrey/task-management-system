@@ -45,3 +45,13 @@
   - Updated `task_management/logging.py` with an in-memory buffer for real-time log streaming (F-0006).
   - Implemented `/healthz` and `/readyz` endpoints for infrastructure probes.
   - Verified API integration with 10-node seed DAG.
+- Milestone 3: COMPLETED and VERIFIED.
+
+## 2026-05-07 (Session 2)
+- Started Milestone 4: Operational Maturity & Intelligence.
+- SWE-2 implemented frontend components for Milestone 4:
+  - **AI-Assisted DAG Generation (F-0007)**: Added natural language input field and preview/apply logic for AI-generated workflows.
+  - **Advanced Scheduling (F-0008)**: Updated task form with Cron/Interval inputs and added an "Upcoming Runs" view to the dashboard.
+  - **Security & Multi-tenancy (F-0009)**: Implemented Login overlay, session management, and project selection UI.
+  - Refined `style.css` and `script.js` to support new interactive dashboard components.
+- Transitioned JIRA tickets for F-0007, F-0008, and F-0009 to IN PROGRESS.
