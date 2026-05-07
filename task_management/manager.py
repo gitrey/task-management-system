@@ -43,9 +43,35 @@ class TaskManager:
         self.state_store = state_store
         self._shutdown_requested = False
 
+        # Load persisted tasks if state_store is provided
+        if self.state_store:
+            self._load_from_store()
+
         # Graceful shutdown signals
         signal.signal(signal.SIGINT, self._handle_signal)
         signal.signal(signal.SIGTERM, self._handle_signal)
+
+    def _load_from_store(self):
+        """Loads task state from the persistent store and restores the DAG."""
+        stored_tasks = self.state_store.load_tasks()
+        for task_id, task_data in stored_tasks.items():
+            # Extract retry policy data
+            rp_data = task_data.pop("retry_policy", {})
+            retry_policy = RetryPolicy(**rp_data) if rp_data else None
+
+            # For restored tasks, we assign a dummy function as we can't persist callables
+            def restored_dummy():
+                time.sleep(1)
+                return f"Restored result for {task_id}"
+
+            task = Task(
+                **task_data, func=restored_dummy, retry_policy=retry_policy
+            )
+            self.tasks[task_id] = task
+
+        self.logger.log(
+            logging.INFO, "Restored tasks from state store", count=len(self.tasks)
+        )
 
     def _handle_signal(self, signum, frame):
         """Internal signal handler for graceful shutdown.
