@@ -19,9 +19,10 @@ During the execution of Milestones 1 and 2, several minor friction points were i
     - **TPM:** Proactively report technical blockers (like git credential issues) to the PM/PO if they persist for more than one turn.
 
 ## Acceptance Criteria
-- [ ] Protocol document created and shared with all agents.
-- [ ] TPM updates the backlog structure to include sub-task assignments for the next milestone.
-- [ ] No merge conflicts in `docs/BACKLOG.md` for at least one full feature cycle.
+- [x] Protocol document created and shared with all agents.
+- [x] TPM updates the backlog structure to include sub-task assignments for the next milestone.
+- [x] No merge conflicts in `docs/BACKLOG.md` for at least one full feature cycle.
 
 ## JIRA Issue
 - [GENDEV-92](https://genai4dev.atlassian.net/browse/GENDEV-92)
+
