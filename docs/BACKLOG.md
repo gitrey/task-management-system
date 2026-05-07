@@ -42,7 +42,7 @@
   - **Status:** IN PROGRESS
   - **Tasks:**
     - [x] Create SQLite migrations for task and dependency tables (DB-1)
-    - [ ] Implement Pydantic models for task validation (SWE-1)
+    - [x] Implement Pydantic models for task validation (SWE-1)
     - [x] Develop dynamic HTML form with interactive field validation (SWE-2)
     - [ ] Add unit tests for form validation logic (SWE-Test)
 
@@ -65,7 +65,7 @@
   - **Spec:** [spec](docs/specs/F-0005-task-management-controls.md)
   - **Status:** IN PROGRESS
   - **Tasks:**
-    - [ ] Implement REST API endpoints for task lifecycle (cancel, retry) (SWE-1)
+    - [x] Implement REST API endpoints for task lifecycle (cancel, retry) (SWE-1)
     - [x] Add UI control panel with interactive buttons (SWE-2)
     - [ ] Verify API coverage >= 90% (SWE-Test)
     - [ ] Run Locust load test (p95 < 200ms) (Perf-Test)
@@ -77,7 +77,7 @@
   - **Spec:** [spec](docs/specs/F-0006-terminal-log-viewer.md)
   - **Status:** IN PROGRESS
   - **Tasks:**
-    - [ ] Update logging module to support JSON streaming (SWE-1)
+    - [x] Update logging module to support JSON streaming (SWE-1)
     - [x] Implement frontend log viewer component with filtering (SWE-2)
     - [x] Add health/ready checks for deployment (SRE-1)
     - [ ] Final security scan and OpenAPI spec generation (Secops-1)

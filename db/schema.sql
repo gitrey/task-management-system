@@ -2,6 +2,7 @@
 
 CREATE TABLE IF NOT EXISTS tasks (
     task_id TEXT PRIMARY KEY,
+    name TEXT,
     priority INTEGER DEFAULT 0,
     status TEXT DEFAULT 'PENDING',
     retries INTEGER DEFAULT 0,
