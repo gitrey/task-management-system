@@ -44,10 +44,47 @@ const statusColors = {
 };
 
 async function initDashboard() {
+    checkAuth();
     initGraph();
     setupEventListeners();
     await refreshData();
     startLogSimulation();
+}
+
+/**
+ * Auth Logic (F-0009)
+ */
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    if (token) {
+        document.getElementById('login-overlay').classList.add('hidden');
+        document.getElementById('logout-item').classList.remove('hidden');
+        document.getElementById('project-selector-container').classList.remove('hidden');
+    }
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const errorEl = document.getElementById('login-error');
+    
+    // Demo auth logic
+    if (username === 'admin') {
+        localStorage.setItem('token', 'demo-jwt-token');
+        localStorage.setItem('username', username);
+        document.getElementById('login-overlay').classList.add('hidden');
+        document.getElementById('logout-item').classList.remove('hidden');
+        document.getElementById('project-selector-container').classList.remove('hidden');
+        addLogEntry('SYSTEM', 'INFO', `User ${username} logged in`);
+    } else {
+        errorEl.textContent = 'Invalid credentials. Try "admin".';
+    }
+}
+
+function handleLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    location.reload();
 }
 
 function initGraph() {
@@ -104,8 +141,27 @@ function initGraph() {
 }
 
 function setupEventListeners() {
+    // Auth
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
     const taskForm = document.getElementById('task-form');
     taskForm.addEventListener('submit', handleFormSubmit);
+
+    // Schedule Type toggle (F-0008)
+    document.getElementById('schedule-type').addEventListener('change', (e) => {
+        const container = document.getElementById('schedule-value-container');
+        if (e.target.value === 'manual') {
+            container.classList.add('hidden');
+        } else {
+            container.classList.remove('hidden');
+        }
+    });
+
+    // AI Workflow Generator (F-0007)
+    document.getElementById('btn-generate-ai').addEventListener('click', handleAIGeneration);
+    document.getElementById('btn-ai-apply').addEventListener('click', applyAIGeneratedDAG);
+    document.getElementById('btn-ai-cancel').addEventListener('click', discardAIGeneratedDAG);
 
     document.getElementById('refresh-graph').addEventListener('click', refreshData);
     document.getElementById('run-all').addEventListener('click', runAllTasks);
@@ -125,12 +181,13 @@ async function refreshData() {
         const tasks = await response.json();
         updateGraph(tasks);
         updateDependenciesList(tasks);
+        updateUpcomingRuns(tasks);
     } catch (err) {
         console.warn('Backend API not found, using demo data');
         const demoTasks = [
             { id: 'Extract', name: 'Extract Data', priority: 1, status: 'COMPLETED', result: 'Fetched 100 rows' },
             { id: 'Transform', name: 'Transform Data', priority: 5, status: 'RUNNING', result: null },
-            { id: 'Load', name: 'Load Database', priority: 3, status: 'PENDING', result: null },
+            { id: 'Load', name: 'Load Database', priority: 3, status: 'PENDING', result: null, schedule_type: 'cron', schedule_value: '0 0 * * *' },
             { id: 'Notify', name: 'Send Notification', priority: 2, status: 'PENDING', result: null }
         ];
         const demoEdges = [
@@ -138,9 +195,84 @@ async function refreshData() {
             { source: 'Transform', target: 'Load' },
             { source: 'Load', target: 'Notify' }
         ];
-        updateGraph(demoTasks.map(t => ({ ...t, dependencies: demoEdges.filter(e => e.target === t.id).map(e => e.source) })));
+        const tasksWithDeps = demoTasks.map(t => ({ ...t, dependencies: demoEdges.filter(e => e.target === t.id).map(e => e.source) }));
+        updateGraph(tasksWithDeps);
         updateDependenciesList(demoTasks);
+        updateUpcomingRuns(tasksWithDeps);
     }
+}
+
+/**
+ * AI Workflow Logic (F-0007)
+ */
+let aiGeneratedTasks = null;
+
+async function handleAIGeneration() {
+    const prompt = document.getElementById('ai-prompt').value;
+    if (!prompt) return;
+
+    const btn = document.getElementById('btn-generate-ai');
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    try {
+        // Mock AI response
+        await new Promise(r => setTimeout(r, 1500));
+        aiGeneratedTasks = [
+            { id: 'S3_Fetch', name: 'Fetch from S3', status: 'PENDING', dependencies: [] },
+            { id: 'Spark_Job', name: 'Run Spark Transformation', status: 'PENDING', dependencies: ['S3_Fetch'] },
+            { id: 'BQ_Load', name: 'Load BigQuery', status: 'PENDING', dependencies: ['Spark_Job'] },
+            { id: 'Slack_Alert', name: 'Slack Notification', status: 'PENDING', dependencies: ['BQ_Load'] }
+        ];
+
+        updateGraph(aiGeneratedTasks);
+        document.getElementById('ai-preview-controls').classList.remove('hidden');
+        addLogEntry('AI', 'INFO', `Generated workflow suggestion based on: "${prompt.substring(0, 30)}..."`);
+    } catch (err) {
+        console.error('AI Generation failed:', err);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate Draft';
+    }
+}
+
+async function applyAIGeneratedDAG() {
+    if (!aiGeneratedTasks) return;
+    addLogEntry('SYSTEM', 'INFO', 'Applying AI-generated workflow');
+    // In a real system, we would POST each task to the backend
+    await refreshData();
+    discardAIGeneratedDAG();
+}
+
+function discardAIGeneratedDAG() {
+    aiGeneratedTasks = null;
+    document.getElementById('ai-preview-controls').classList.add('hidden');
+    document.getElementById('ai-prompt').value = '';
+    refreshData();
+}
+
+/**
+ * Advanced Scheduling Logic (F-0008)
+ */
+function updateUpcomingRuns(tasks) {
+    const list = document.getElementById('upcoming-runs-list');
+    const scheduledTasks = tasks.filter(t => t.schedule_type && t.schedule_type !== 'manual');
+    
+    if (scheduledTasks.length === 0) {
+        list.innerHTML = '<p class="text-muted italic">No active schedules</p>';
+        return;
+    }
+
+    list.innerHTML = '';
+    scheduledTasks.forEach(task => {
+        const item = document.createElement('div');
+        item.className = 'upcoming-item';
+        item.innerHTML = `
+            <span class="task-id">${task.id}</span>
+            <span class="next-run">Next: In 5 mins (${task.schedule_value})</span>
+        `;
+        list.appendChild(item);
+    });
 }
 
 function updateGraph(tasks) {
