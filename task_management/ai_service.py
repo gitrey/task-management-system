@@ -13,7 +13,7 @@ class AIService:
         if self.api_key:
             genai.configure(api_key=self.api_key)
             # Use a stable version of Gemini
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            self.model = genai.GenerativeModel('gemini-flash-latest')
             self.logger.info("AI Service initialized with Gemini API Key")
         else:
             self.model = None

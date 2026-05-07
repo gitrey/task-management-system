@@ -295,7 +295,8 @@ def test_sqlite_operational_error(tmp_path, monkeypatch):
 
     with monkeypatch.context() as m:
         m.setattr(sqlite3, "connect", mock_connect)
-        assert store.load_tasks() == {}
+        with pytest.raises(sqlite3.OperationalError):
+            store.load_tasks()
 
 
 def test_retry_timer_callback():
