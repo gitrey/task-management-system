@@ -23,12 +23,12 @@
     - [x] Final verification of design and responsiveness (SWE-Test)
 
 ## Milestone 3: Process Optimization
-- [ ] **F-0003: Team Process Retrospective & Agent Protocol Improvements (GENDEV-92)**
+- [x] **F-0003: Team Process Retrospective & Agent Protocol Improvements (GENDEV-92)**
   - **Priority:** P2
   - **Spec:** [spec](docs/specs/F-0003-retrospective-improvements.md)
-  - **Status:** IN PROGRESS
+  - **Status:** COMPLETED
   - **Tasks:**
-    - [/] Create `docs/TEAM_PROTOCOLS.md` with standardized git and communication rules (Assigned: SWE-1)
-    - [/] Refine `docs/BACKLOG.md` structure to support granular sub-task tracking (Assigned: TPM)
-    - [ ] Brief all agents on new role refinements and sync protocols (Assigned: TPM)
+    - [x] Create `docs/TEAM_PROTOCOLS.md` with standardized git and communication rules (Assigned: SWE-1)
+    - [x] Refine `docs/BACKLOG.md` structure to support granular sub-task tracking (Assigned: TPM)
+    - [x] Brief all agents on new role refinements and sync protocols (Assigned: TPM)
 
