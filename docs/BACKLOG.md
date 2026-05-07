@@ -38,9 +38,9 @@
   - **Scope:** Web form for task creation with Pydantic validation.
   - **Dependencies:** Backend API
   - **Spec:** [spec](docs/specs/F-0003-dynamic-task-scheduling-form.md)
-  - **Status:** TO DO
+  - **Status:** IN PROGRESS
   - **Tasks:**
-    - [ ] Create SQLite migrations for task and dependency tables (DB-1)
+    - [x] Create SQLite migrations for task and dependency tables (DB-1)
     - [ ] Implement Pydantic models for task validation (SWE-1)
     - [ ] Develop dynamic HTML form with interactive field validation (SWE-2)
     - [ ] Add unit tests for form validation logic (SWE-Test)
@@ -49,9 +49,9 @@
   - **Scope:** Real-time DAG visualization using Cytoscape.js.
   - **Dependencies:** F-0003
   - **Spec:** [spec](docs/specs/F-0004-dag-graph-visualizer.md)
-  - **Status:** TO DO
+  - **Status:** IN PROGRESS
   - **Tasks:**
-    - [ ] Seed 10-node DAG dataset for visualization testing (DB-1)
+    - [x] Seed 10-node DAG dataset for visualization testing (DB-1)
     - [ ] Integrate Cytoscape.js and implement basic graph layout (SWE-2)
     - [ ] Add interactive nodes with state-based color coding (SWE-2)
     - [ ] Capture baseline and interaction-state screenshots (UI-Test)
