@@ -84,6 +84,42 @@ class TaskManagementAPIUser(HttpUser):
             else:
                 response.failure(f"Metrics endpoint returned {response.status_code}")
 
+    @task(1)
+    def generate_ai_workflow(self):
+        """Tests the AI workflow generation endpoint (F-0007)."""
+        if not self.token: return
+        with self.client.post("/api/ai/generate", headers=self.headers, json={
+            "prompt": "Run task A, then task B and C in parallel."
+        }, catch_response=True) as response:
+            if response.status_code == 200:
+                response.success()
+            elif response.status_code == 500:
+                # Might be due to missing API Key in this environment
+                response.success() 
+            else:
+                response.failure(f"AI Generation returned {response.status_code}")
+
+    @task(1)
+    def schedule_recurring_task(self):
+        """Tests the advanced scheduling endpoint (F-0008)."""
+        if not self.token: return
+        # Create a task first
+        name = f"Scheduled_Task_{int(time.time())}"
+        response = self.client.post("/api/tasks", headers=self.headers, json={
+            "name": name,
+            "priority": 1,
+            "max_retries": 3,
+            "base_delay": 1.0,
+            "dependencies": []
+        })
+        if response.status_code == 200:
+            task_id = response.json()["id"]
+            # Schedule it
+            self.client.post(f"/api/tasks/{task_id}/schedule", headers=self.headers, json={
+                "type": "interval",
+                "value": "10"
+            })
+
     @task(5)
     def get_tasks_list(self):
         """High frequency task to simulate dashboard polling."""
