@@ -15,6 +15,10 @@ resource "google_cloud_run_v2_service" "backend" {
           memory = "512Mi"
         }
       }
+      scaling {
+        min_instance_count = 1
+        max_instance_count = 10
+      }
       liveness_probe {
         http_get {
           path = "/healthz"

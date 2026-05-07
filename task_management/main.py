@@ -1,6 +1,7 @@
 import logging
 import uuid
 import os
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -52,17 +53,49 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
 @app.get("/healthz")
 async def healthz():
     """Liveness probe."""
-    return {"status": "ok"}
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    }
 
 @app.get("/readyz")
 async def readyz():
     """Readiness probe."""
+    components = {
+        "database": "disconnected",
+        "storage": "readonly"
+    }
+    is_ready = True
+    
     try:
-        if manager.state_store:
-            manager.state_store.conn.execute("SELECT 1")
-        return {"status": "ready"}
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Database not ready: {str(e)}")
+        # Check database connection
+        with manager.state_store.conn as conn:
+            conn.execute("SELECT 1")
+        components["database"] = "connected"
+    except Exception:
+        components["database"] = "error"
+        is_ready = False
+
+    try:
+        # Check storage write access
+        if os.access(manager.state_store.db_path, os.W_OK):
+            components["storage"] = "writable"
+        else:
+            is_ready = False
+    except Exception:
+        components["storage"] = "error"
+        is_ready = False
+
+    if not is_ready:
+        raise HTTPException(
+            status_code=503,
+            detail={"status": "not ready", "components": components}
+        )
+
+    return {
+        "status": "ready",
+        "components": components
+    }
 
 @app.get("/metrics")
 async def metrics():
