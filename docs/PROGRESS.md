@@ -28,7 +28,9 @@
 - Merged new feature specs (F-0003, F-0004, F-0005, F-0006) from `scion/tpm` branch.
 - Created relational database schema in `db/schema.sql` and migration `db/migrations/V1__Initial_Schema.sql`.
 - Seeded a 10-node DAG dataset for visualization testing in `db/data.sql`.
+- Created `db/migrations/V2__Add_Logs_Table.sql`, updated `db/schema.sql` and `db/data.sql` to support F-0006 (Terminal Log Viewer).
 - Verified SQL scripts using Python's `sqlite3` module.
+- Fulfilled urgent request from TPM: Pushed database assets (Milestone 4 schema) to `scion/tpm` branch.
 - Updated `docs/BACKLOG.md` marking DB tasks as COMPLETED and Milestone 3 as IN PROGRESS.
 - SWE-2 implemented frontend components for Milestone 3:
   - Dynamic Task Scheduling Form (F-0003) in `index.html` and `script.js`.
