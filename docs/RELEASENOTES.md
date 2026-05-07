@@ -1,5 +1,14 @@
 # Release Notes
 
+## [1.4.0] - 2026-05-07
+### Added
+- **Operational Maturity & Intelligence (Milestone 4):**
+    - **AI-Assisted DAG Generation:** LLM integration for natural language workflow creation (F-0007).
+    - **Advanced Scheduling:** Cron and interval-based recurring task execution (F-0008).
+    - **Security & Multi-tenancy:** OAuth2/JWT authentication and project-level isolation (F-0009).
+    - **Observability:** Prometheus metrics integration and Grafana dashboard for system-wide monitoring (F-0010).
+    - **Reliability Tooling:** Comprehensive runbooks, post-mortem templates, and SLO definitions.
+
 ## [1.3.0] - 2026-05-07
 ### Added
 - **Interactive Web Dashboard (Milestone 3):**
