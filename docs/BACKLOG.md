@@ -81,3 +81,29 @@
     - [x] Implement frontend log viewer component with filtering (SWE-2)
     - [x] Add health/ready checks for deployment (SRE-1)
     - [x] Final security scan and OpenAPI spec generation (Secops-1)
+
+## Milestone 4: Operational Maturity & Intelligence
+- [ ] **F-0007: AI-Assisted DAG Generation (TBD)**
+  - **Priority:** P2
+  - **Scope:** LLM integration for natural language workflow generation.
+  - **Dependencies:** F-0004
+  - **Spec:** [spec](docs/specs/F-0007-ai-dag-generation.md)
+  - **Status:** DRAFT
+- [ ] **F-0008: Advanced Scheduling (TBD)**
+  - **Priority:** P1
+  - **Scope:** Cron and interval-based recurring task execution.
+  - **Dependencies:** SQLite
+  - **Spec:** [spec](docs/specs/F-0008-advanced-scheduling.md)
+  - **Status:** DRAFT
+- [ ] **F-0009: Security & Multi-tenancy (TBD)**
+  - **Priority:** P1
+  - **Scope:** OAuth2/JWT authentication and project isolation.
+  - **Dependencies:** FastAPI
+  - **Spec:** [spec](docs/specs/F-0009-security-multi-tenancy.md)
+  - **Status:** DRAFT
+- [ ] **F-0010: Observability (TBD)**
+  - **Priority:** P2
+  - **Scope:** Prometheus metrics and Grafana dashboard.
+  - **Dependencies:** Infrastructure support
+  - **Spec:** [spec](docs/specs/F-0010-observability.md)
+  - **Status:** DRAFT
