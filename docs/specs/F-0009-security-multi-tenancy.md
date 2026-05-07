@@ -1,8 +1,8 @@
-# F-0009: Security & Multi-tenancy
+# F-0009: Security & Multi-tenancy (GENDEV-99)
 
 - **Type:** Feature
 - **Priority:** P1
-- **Status:** Draft
+- **Status:** Approved
 
 ## Problem
 The dashboard is currently open to anyone with the URL, and there is no isolation between different users' tasks.

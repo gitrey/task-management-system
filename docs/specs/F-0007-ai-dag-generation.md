@@ -1,8 +1,8 @@
-# F-0007: AI-Assisted DAG Generation
+# F-0007: AI-Assisted DAG Generation (GENDEV-97)
 
 - **Type:** Feature
 - **Priority:** P2
-- **Status:** Draft
+- **Status:** Approved
 
 ## Problem
 Building complex DAGs manually via the form can be time-consuming and error-prone for users who aren't familiar with the underlying task logic.

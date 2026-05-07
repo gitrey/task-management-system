@@ -1,8 +1,8 @@
-# F-0010: Observability (Metrics & Dashboards)
+# F-0010: Observability (Metrics & Dashboards) (GENDEV-100)
 
 - **Type:** Feature
 - **Priority:** P2
-- **Status:** Draft
+- **Status:** Approved
 
 ## Problem
 There is no centralized view of system performance, failure rates, or resource usage over time.

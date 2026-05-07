@@ -1,8 +1,8 @@
-# F-0008: Advanced Scheduling (Cron & Interval)
+# F-0008: Advanced Scheduling (Cron & Interval) (GENDEV-98)
 
 - **Type:** Feature
 - **Priority:** P1
-- **Status:** Draft
+- **Status:** Approved
 
 ## Problem
 Currently, tasks must be triggered manually or via immediate execution. Users need a way to schedule recurring tasks.
