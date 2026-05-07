@@ -33,6 +33,7 @@
     - [x] Brief all agents on new role refinements and sync protocols (Assigned: TPM)
 
 ## Milestone 3: Interactive Dashboard
+
 - [ ] **F-0003: Dynamic Task Scheduling Form (GENDEV-93)**
   - **Priority:** P1
   - **Scope:** Web form for task creation with Pydantic validation.
@@ -44,17 +45,19 @@
     - [ ] Implement Pydantic models for task validation (SWE-1)
     - [ ] Develop dynamic HTML form with interactive field validation (SWE-2)
     - [ ] Add unit tests for form validation logic (SWE-Test)
+
 - [ ] **F-0004: Interactive DAG Graph Visualizer (GENDEV-94)**
   - **Priority:** P1
   - **Scope:** Real-time DAG visualization using Cytoscape.js.
   - **Dependencies:** F-0003
   - **Spec:** [spec](docs/specs/F-0004-dag-graph-visualizer.md)
-  - **Status:** IN PROGRESS
+  - **Status:** TO DO
   - **Tasks:**
     - [x] Seed 10-node DAG dataset for visualization testing (DB-1)
     - [ ] Integrate Cytoscape.js and implement basic graph layout (SWE-2)
     - [ ] Add interactive nodes with state-based color coding (SWE-2)
     - [ ] Capture baseline and interaction-state screenshots (UI-Test)
+
 - [ ] **F-0005: Task Management Controls & API (GENDEV-95)**
   - **Priority:** P1
   - **Scope:** Controls for cancel/retry and execution API.
@@ -66,6 +69,7 @@
     - [ ] Add UI control panel with interactive buttons (SWE-2)
     - [ ] Verify API coverage >= 90% (SWE-Test)
     - [ ] Run Locust load test (p95 < 200ms) (Perf-Test)
+
 - [ ] **F-0006: Terminal Log Stream Viewer (GENDEV-96)**
   - **Priority:** P1
   - **Scope:** Dark-mode terminal log viewer with filtering.
