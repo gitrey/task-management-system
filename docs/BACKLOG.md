@@ -71,8 +71,9 @@
   - **Scope:** Dark-mode terminal log viewer with filtering.
   - **Dependencies:** JSON logging
   - **Spec:** [spec](docs/specs/F-0006-terminal-log-viewer.md)
-  - **Status:** TO DO
+  - **Status:** IN PROGRESS
   - **Tasks:**
+    - [x] Create logs table migration and seed sample logs (DB-1)
     - [ ] Update logging module to support JSON streaming (SWE-1)
     - [ ] Implement frontend log viewer component with filtering (SWE-2)
     - [ ] Add health/ready checks for deployment (SRE-1)
