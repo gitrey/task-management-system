@@ -126,7 +126,7 @@
   - **Scope:** Prometheus metrics and Grafana dashboard.
   - **Dependencies:** Infrastructure support
   - **Spec:** [spec](docs/specs/F-0010-observability.md)
-  - **Status:** COMPLETED
+  - **Status:** VERIFIED
   - **Tasks:**
     - [x] Integrate `prometheus_client` and define core system metrics (SWE-1)
     - [x] Implement `/metrics` endpoint in FastAPI (SWE-1)
