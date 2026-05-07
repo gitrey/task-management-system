@@ -89,21 +89,46 @@
   - **Dependencies:** F-0004
   - **Spec:** [spec](docs/specs/F-0007-ai-dag-generation.md)
   - **Status:** TO DO
+  - **Tasks:**
+    - [ ] Create LLM integration service using Google Vertex AI/Gemini (SWE-1)
+    - [ ] Implement backend endpoint for natural language workflow parsing (SWE-1)
+    - [ ] Add "Generate Workflow" UI component to the dashboard (SWE-2)
+    - [ ] Integrate visual preview logic using existing DAG visualizer (SWE-2)
+    - [ ] Verify AI-generated DAG correctness with edge-case descriptions (SWE-Test)
 - [ ] **F-0008: Advanced Scheduling (GENDEV-98)**
   - **Priority:** P1
   - **Scope:** Cron and interval-based recurring task execution.
   - **Dependencies:** SQLite
   - **Spec:** [spec](docs/specs/F-0008-advanced-scheduling.md)
   - **Status:** TO DO
+  - **Tasks:**
+    - [ ] Add `schedule` column to database tasks table (DB-1)
+    - [ ] Integrate APScheduler into the backend TaskManager (SWE-1)
+    - [ ] Implement recurring task trigger and persistence logic (SWE-1)
+    - [ ] Update task creation form to support Cron/Interval inputs (SWE-2)
+    - [ ] Add "Upcoming Runs" view to the dashboard (SWE-2)
 - [ ] **F-0009: Security & Multi-tenancy (GENDEV-99)**
   - **Priority:** P1
   - **Scope:** OAuth2/JWT authentication and project isolation.
   - **Dependencies:** FastAPI
   - **Spec:** [spec](docs/specs/F-0009-security-multi-tenancy.md)
   - **Status:** TO DO
+  - **Tasks:**
+    - [ ] Design and implement Users and Projects database schema (DB-1)
+    - [ ] Implement JWT-based authentication in FastAPI (SWE-1)
+    - [ ] Add multi-tenancy filters to all task management queries (SWE-1)
+    - [ ] Create Login page and session management in the frontend (SWE-2)
+    - [ ] Add project selection and management UI (SWE-2)
+    - [ ] Run security scan for authentication bypass vulnerabilities (Secops-1)
 - [ ] **F-0010: Observability (GENDEV-100)**
   - **Priority:** P2
   - **Scope:** Prometheus metrics and Grafana dashboard.
   - **Dependencies:** Infrastructure support
   - **Spec:** [spec](docs/specs/F-0010-observability.md)
   - **Status:** TO DO
+  - **Tasks:**
+    - [ ] Integrate `prometheus_client` and define core system metrics (SWE-1)
+    - [ ] Implement `/metrics` endpoint in FastAPI (SWE-1)
+    - [ ] Add resource monitoring (CPU/RAM) to TaskManager (SWE-1)
+    - [ ] Create Prometheus configuration and Grafana dashboard JSON (SRE-1)
+    - [ ] Verify metrics accuracy during high-concurrency load (Perf-Test)
