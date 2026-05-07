@@ -79,5 +79,5 @@
   - **Tasks:**
     - [ ] Update logging module to support JSON streaming (SWE-1)
     - [x] Implement frontend log viewer component with filtering (SWE-2)
-    - [ ] Add health/ready checks for deployment (SRE-1)
+    - [x] Add health/ready checks for deployment (SRE-1)
     - [ ] Final security scan and OpenAPI spec generation (Secops-1)
