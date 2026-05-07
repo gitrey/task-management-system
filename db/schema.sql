@@ -23,3 +23,19 @@ CREATE TABLE IF NOT EXISTS task_dependencies (
 
 CREATE INDEX IF NOT EXISTS idx_task_dependencies_task_id ON task_dependencies(task_id);
 CREATE INDEX IF NOT EXISTS idx_task_dependencies_depends_on_task_id ON task_dependencies(depends_on_task_id);
+
+CREATE TABLE IF NOT EXISTS logs (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp REAL NOT NULL,
+    level TEXT NOT NULL,
+    event TEXT NOT NULL,
+    task_id TEXT,
+    trace_id TEXT,
+    message TEXT,
+    details TEXT, -- JSON string for additional metadata
+    FOREIGN KEY (task_id) REFERENCES tasks (task_id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_logs_task_id ON logs(task_id);
+CREATE INDEX IF NOT EXISTS idx_logs_trace_id ON logs(trace_id);
+CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp);
