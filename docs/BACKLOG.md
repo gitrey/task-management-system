@@ -43,7 +43,7 @@
   - **Tasks:**
     - [x] Create SQLite migrations for task and dependency tables (DB-1)
     - [ ] Implement Pydantic models for task validation (SWE-1)
-    - [ ] Develop dynamic HTML form with interactive field validation (SWE-2)
+    - [x] Develop dynamic HTML form with interactive field validation (SWE-2)
     - [ ] Add unit tests for form validation logic (SWE-Test)
 
 - [ ] **F-0004: Interactive DAG Graph Visualizer (GENDEV-94)**
@@ -51,11 +51,11 @@
   - **Scope:** Real-time DAG visualization using Cytoscape.js.
   - **Dependencies:** F-0003
   - **Spec:** [spec](docs/specs/F-0004-dag-graph-visualizer.md)
-  - **Status:** TO DO
+  - **Status:** IN PROGRESS
   - **Tasks:**
     - [x] Seed 10-node DAG dataset for visualization testing (DB-1)
-    - [ ] Integrate Cytoscape.js and implement basic graph layout (SWE-2)
-    - [ ] Add interactive nodes with state-based color coding (SWE-2)
+    - [x] Integrate Cytoscape.js and implement basic graph layout (SWE-2)
+    - [x] Add interactive nodes with state-based color coding (SWE-2)
     - [ ] Capture baseline and interaction-state screenshots (UI-Test)
 
 - [ ] **F-0005: Task Management Controls & API (GENDEV-95)**
@@ -63,10 +63,10 @@
   - **Scope:** Controls for cancel/retry and execution API.
   - **Dependencies:** F-0004
   - **Spec:** [spec](docs/specs/F-0005-task-management-controls.md)
-  - **Status:** TO DO
+  - **Status:** IN PROGRESS
   - **Tasks:**
     - [ ] Implement REST API endpoints for task lifecycle (cancel, retry) (SWE-1)
-    - [ ] Add UI control panel with interactive buttons (SWE-2)
+    - [x] Add UI control panel with interactive buttons (SWE-2)
     - [ ] Verify API coverage >= 90% (SWE-Test)
     - [ ] Run Locust load test (p95 < 200ms) (Perf-Test)
 
@@ -75,9 +75,9 @@
   - **Scope:** Dark-mode terminal log viewer with filtering.
   - **Dependencies:** JSON logging
   - **Spec:** [spec](docs/specs/F-0006-terminal-log-viewer.md)
-  - **Status:** TO DO
+  - **Status:** IN PROGRESS
   - **Tasks:**
     - [ ] Update logging module to support JSON streaming (SWE-1)
-    - [ ] Implement frontend log viewer component with filtering (SWE-2)
+    - [x] Implement frontend log viewer component with filtering (SWE-2)
     - [ ] Add health/ready checks for deployment (SRE-1)
     - [ ] Final security scan and OpenAPI spec generation (Secops-1)

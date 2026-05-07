@@ -30,3 +30,10 @@
 - Seeded a 10-node DAG dataset for visualization testing in `db/data.sql`.
 - Verified SQL scripts using Python's `sqlite3` module.
 - Updated `docs/BACKLOG.md` marking DB tasks as COMPLETED and Milestone 3 as IN PROGRESS.
+- SWE-2 implemented frontend components for Milestone 3:
+  - Dynamic Task Scheduling Form (F-0003) in `index.html` and `script.js`.
+  - Interactive DAG Graph Visualizer (F-0004) using Cytoscape.js and Dagre layout.
+  - UI control panel for task lifecycle management (F-0005).
+  - Terminal Log Stream Viewer (F-0006) with filtering capabilities.
+  - Integrated modern dashboard layout into `style.css`.
+- Pushed changes to `feature/milestone-3-frontend` and transitioned JIRA tickets to IN PROGRESS/IN REVIEW.

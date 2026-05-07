@@ -22,6 +22,7 @@
             <ul class="nav-links">
                 <li><a href="#hero">About</a></li>
                 <li><a href="#features">Features</a></li>
+                <li><a href="#dashboard">Dashboard</a></li>
                 <li><a href="#structure">Structure</a></li>
                 <li><a href="#usage">Usage</a></li>
             </ul>
@@ -34,7 +35,90 @@
                 <h1>Task Management System</h1>
                 <p>A robust task execution engine implemented in Python. It supports task prioritization, dependency management in a Directed Acyclic Graph (DAG), and cascading cancellations.</p>
                 <div class="cta">
-                    <a href="#usage" class="btn btn-primary">View Sample Usage</a>
+                    <a href="#dashboard" class="btn btn-primary">Go to Dashboard</a>
+                    <a href="#usage" class="btn btn-secondary">View Sample Usage</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboard">
+            <div class="container">
+                <h2>Interactive Dashboard</h2>
+                <div class="dashboard-grid">
+                    <!-- Task Creation Form (F-0003) -->
+                    <div class="card task-form-container">
+                        <h3>Schedule New Task</h3>
+                        <form id="task-form">
+                            <div class="form-group">
+                                <label for="task-name">Task Name</label>
+                                <input type="text" id="task-name" name="name" placeholder="e.g. ProcessData" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="task-priority">Priority (1-10)</label>
+                                <input type="number" id="task-priority" name="priority" min="1" max="10" value="5" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="max-retries">Max Retries</label>
+                                    <input type="number" id="max-retries" name="max_retries" min="0" value="3">
+                                </div>
+                                <div class="form-group">
+                                    <label for="base-delay">Base Delay (s)</label>
+                                    <input type="number" id="base-delay" name="base_delay" min="0" step="0.1" value="1.0">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="dependencies">Dependencies</label>
+                                <select id="dependencies" name="dependencies" multiple>
+                                    <!-- Populated dynamically -->
+                                </select>
+                                <small>Hold Ctrl/Cmd to select multiple</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Schedule Task</button>
+                            <div id="form-message" class="form-message"></div>
+                        </form>
+                    </div>
+
+                    <!-- DAG Visualizer (F-0004) -->
+                    <div class="card graph-container">
+                        <div class="card-header">
+                            <h3>DAG Visualizer</h3>
+                            <div class="controls">
+                                <button id="run-all" class="btn btn-secondary btn-sm">Run All Tasks</button>
+                                <button id="refresh-graph" class="btn btn-outline btn-sm">Refresh</button>
+                            </div>
+                        </div>
+                        <div id="cy" class="cy-container"></div>
+                        <div id="node-info" class="node-info hidden">
+                            <h4 id="info-name">Task: -</h4>
+                            <p>Status: <span id="info-status">-</span></p>
+                            <p id="info-result-container">Result: <span id="info-result">-</span></p>
+                            <div class="node-actions">
+                                <button id="btn-cancel" class="btn btn-danger btn-sm">Cancel</button>
+                                <button id="btn-retry" class="btn btn-warning btn-sm">Retry</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Viewer (F-0006) -->
+                    <div class="card log-container">
+                        <div class="card-header">
+                            <h3>Terminal Log Stream</h3>
+                            <div class="filters">
+                                <input type="text" id="log-filter-task" placeholder="Filter Task ID...">
+                                <select id="log-filter-level">
+                                    <option value="">All Levels</option>
+                                    <option value="INFO">INFO</option>
+                                    <option value="WARNING">WARNING</option>
+                                    <option value="ERROR">ERROR</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="log-viewer" class="terminal-body">
+                            <!-- Logs populated dynamically -->
+                            <div class="log-entry system">Ready to monitor logs...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -143,6 +227,10 @@ if task_b and task_b.status == TaskStatus.COMPLETED:
         </div>
     </footer>
 
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
