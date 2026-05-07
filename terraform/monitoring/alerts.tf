@@ -98,3 +98,23 @@ resource "google_monitoring_alert_policy" "high_error_rate_alert" {
 
   notification_channels = [var.notification_channel_id]
 }
+
+resource "google_monitoring_alert_policy" "high_latency_alert" {
+  display_name = "Cloud Run High Latency Alert"
+  combiner     = "OR"
+  conditions {
+    display_name = "p95 latency above 500ms"
+    condition_threshold {
+      filter     = "metric.type=\"run.googleapis.com/request_latencies\" AND resource.type=\"cloud_run_revision\" AND resource.label.service_name=\"${google_cloud_run_v2_service.backend.name}\""
+      duration   = "300s"
+      comparison = "COMPARISON_GT"
+      threshold_value = 500
+      aggregations {
+        alignment_period   = "60s"
+        per_series_aligner = "ALIGN_PERCENTILE_95"
+      }
+    }
+  }
+
+  notification_channels = [var.notification_channel_id]
+}
