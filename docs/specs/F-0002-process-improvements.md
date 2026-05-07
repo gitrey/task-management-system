@@ -1,4 +1,4 @@
-# F-0003: Team Process Retrospective & Agent Protocol Improvements
+# F-0002.5: Team Process Retrospective & Agent Protocol Improvements
 
 - **Type:** Enhancement
 - **Priority:** P2
