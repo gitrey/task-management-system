@@ -126,10 +126,10 @@
   - **Scope:** Prometheus metrics and Grafana dashboard.
   - **Dependencies:** Infrastructure support
   - **Spec:** [spec](docs/specs/F-0010-observability.md)
-  - **Status:** IN PROGRESS
+  - **Status:** COMPLETED
   - **Tasks:**
     - [x] Integrate `prometheus_client` and define core system metrics (SWE-1)
     - [x] Implement `/metrics` endpoint in FastAPI (SWE-1)
     - [x] Add resource monitoring (CPU/RAM) to TaskManager (SWE-1)
     - [x] Create Prometheus configuration and Grafana dashboard JSON (SRE-1)
-    - [ ] Verify metrics accuracy during high-concurrency load (Perf-Test)
+    - [x] Verify metrics accuracy during high-concurrency load (Perf-Test)
