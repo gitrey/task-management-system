@@ -2,6 +2,7 @@ import json
 import logging
 import time
 import sys
+from typing import List, Dict, Any
 
 
 class StructuredLogger:
@@ -9,7 +10,11 @@ class StructuredLogger:
 
     Attributes:
         logger: Internal logger instance.
+        _buffer: Static list to store recent log records for API streaming.
     """
+
+    _buffer: List[Dict[str, Any]] = []
+    _max_buffer_size = 500
 
     def __init__(self, name: str = "TaskManager"):
         """Initializes the structured logger.
@@ -26,7 +31,7 @@ class StructuredLogger:
             self.logger.addHandler(handler)
 
     def log(self, level: int, event: str, **kwargs):
-        """Logs a structured JSON message.
+        """Logs a structured JSON message and updates the buffer.
 
         Args:
             level: The logging level (e.g., logging.INFO).
@@ -39,4 +44,15 @@ class StructuredLogger:
             "event": event,
             **kwargs,
         }
-        self.logger.log(level, json.dumps(record))
+        json_record = json.dumps(record)
+        self.logger.log(level, json_record)
+
+        # Update the static buffer for API access
+        StructuredLogger._buffer.append(record)
+        if len(StructuredLogger._buffer) > StructuredLogger._max_buffer_size:
+            StructuredLogger._buffer.pop(0)
+
+    @classmethod
+    def get_buffer(cls) -> List[Dict[str, Any]]:
+        """Returns the current log buffer."""
+        return cls._buffer
