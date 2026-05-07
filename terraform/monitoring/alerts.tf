@@ -38,3 +38,63 @@ resource "google_monitoring_alert_policy" "uptime_alert" {
 
   notification_channels = [var.notification_channel_id]
 }
+
+resource "google_monitoring_alert_policy" "high_cpu_alert" {
+  display_name = "Cloud Run High CPU Alert"
+  combiner     = "OR"
+  conditions {
+    display_name = "CPU utilization above 80%"
+    condition_threshold {
+      filter     = "metric.type=\"run.googleapis.com/container/cpu/utilizations\" AND resource.type=\"cloud_run_revision\" AND resource.label.service_name=\"${google_cloud_run_v2_service.backend.name}\""
+      duration   = "300s"
+      comparison = "COMPARISON_GT"
+      threshold_value = 0.8
+      aggregations {
+        alignment_period   = "60s"
+        per_series_aligner = "ALIGN_PERCENTILE_99"
+      }
+    }
+  }
+
+  notification_channels = [var.notification_channel_id]
+}
+
+resource "google_monitoring_alert_policy" "high_memory_alert" {
+  display_name = "Cloud Run High Memory Alert"
+  combiner     = "OR"
+  conditions {
+    display_name = "Memory utilization above 90%"
+    condition_threshold {
+      filter     = "metric.type=\"run.googleapis.com/container/memory/utilizations\" AND resource.type=\"cloud_run_revision\" AND resource.label.service_name=\"${google_cloud_run_v2_service.backend.name}\""
+      duration   = "300s"
+      comparison = "COMPARISON_GT"
+      threshold_value = 0.9
+      aggregations {
+        alignment_period   = "60s"
+        per_series_aligner = "ALIGN_PERCENTILE_99"
+      }
+    }
+  }
+
+  notification_channels = [var.notification_channel_id]
+}
+
+resource "google_monitoring_alert_policy" "high_error_rate_alert" {
+  display_name = "Cloud Run High Error Rate Alert"
+  combiner     = "OR"
+  conditions {
+    display_name = "5xx error rate above 5%"
+    condition_threshold {
+      filter     = "metric.type=\"run.googleapis.com/request_count\" AND resource.type=\"cloud_run_revision\" AND resource.label.service_name=\"${google_cloud_run_v2_service.backend.name}\" AND metric.label.response_code_class=\"5xx\""
+      duration   = "60s"
+      comparison = "COMPARISON_GT"
+      threshold_value = 0.05
+      aggregations {
+        alignment_period   = "60s"
+        per_series_aligner = "ALIGN_RATE"
+      }
+    }
+  }
+
+  notification_channels = [var.notification_channel_id]
+}

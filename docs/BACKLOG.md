@@ -84,43 +84,43 @@
     - [x] Final security scan and OpenAPI spec generation (Secops-1)
 
 ## Milestone 4: Operational Maturity & Intelligence
-- [ ] **F-0007: AI-Assisted DAG Generation (GENDEV-97)**
+- [x] **F-0007: AI-Assisted DAG Generation (GENDEV-97)**
   - **Priority:** P2
   - **Scope:** LLM integration for natural language workflow generation.
   - **Dependencies:** F-0004
   - **Spec:** [spec](docs/specs/F-0007-ai-dag-generation.md)
-  - **Status:** IN PROGRESS
+  - **Status:** COMPLETED
   - **Tasks:**
     - [x] Create LLM integration service using Google Vertex AI/Gemini (SWE-1)
     - [x] Implement backend endpoint for natural language workflow parsing (SWE-1)
     - [x] Add "Generate Workflow" UI component to the dashboard (SWE-2)
     - [x] Integrate visual preview logic using existing DAG visualizer (SWE-2)
-    - [ ] Verify AI-generated DAG correctness with edge-case descriptions (SWE-Test)
-- [ ] **F-0008: Advanced Scheduling (GENDEV-98)**
+    - [x] Verify AI-generated DAG correctness with edge-case descriptions (SWE-Test)
+- [x] **F-0008: Advanced Scheduling (GENDEV-98)**
   - **Priority:** P1
   - **Scope:** Cron and interval-based recurring task execution.
   - **Dependencies:** SQLite
   - **Spec:** [spec](docs/specs/F-0008-advanced-scheduling.md)
-  - **Status:** IN PROGRESS
+  - **Status:** COMPLETED
   - **Tasks:**
     - [x] Add `schedule` column to database tasks table (DB-1)
     - [x] Integrate APScheduler into the backend TaskManager (SWE-1)
     - [x] Implement recurring task trigger and persistence logic (SWE-1)
     - [x] Update task creation form to support Cron/Interval inputs (SWE-2)
     - [x] Add "Upcoming Runs" view to the dashboard (SWE-2)
-- [ ] **F-0009: Security & Multi-tenancy (GENDEV-99)**
+- [x] **F-0009: Security & Multi-tenancy (GENDEV-99)**
   - **Priority:** P1
   - **Scope:** OAuth2/JWT authentication and project isolation.
   - **Dependencies:** FastAPI
   - **Spec:** [spec](docs/specs/F-0009-security-multi-tenancy.md)
-  - **Status:** IN PROGRESS
+  - **Status:** COMPLETED
   - **Tasks:**
     - [x] Design and implement Users and Projects database schema (DB-1)
     - [x] Implement JWT-based authentication in FastAPI (SWE-1)
     - [x] Add multi-tenancy filters to all task management queries (SWE-1)
     - [x] Create Login page and session management in the frontend (SWE-2)
     - [x] Add project selection and management UI (SWE-2)
-    - [ ] Run security scan for authentication bypass vulnerabilities (Secops-1)
+    - [x] Run security scan for authentication bypass vulnerabilities (Secops-1)
 - [ ] **F-0010: Observability (GENDEV-100)**
   - **Priority:** P2
   - **Scope:** Prometheus metrics and Grafana dashboard.
@@ -132,4 +132,5 @@
     - [x] Implement `/metrics` endpoint in FastAPI (SWE-1)
     - [x] Add resource monitoring (CPU/RAM) to TaskManager (SWE-1)
     - [x] Create Prometheus configuration and Grafana dashboard JSON (SRE-1)
-    - [ ] Verify metrics accuracy during high-concurrency load (Perf-Test)
+    - [ ] Finalize backend metrics alignment with SLO specs (SWE-1)
+    - [x] Verify metrics accuracy during high-concurrency load (Perf-Test)

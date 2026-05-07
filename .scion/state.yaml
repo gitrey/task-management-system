@@ -1,4 +1,4 @@
-last_synced_at: "2026-05-07T14:05:22.254216728Z"
+last_synced_at: "2026-05-07T14:15:18.372068953Z"
 synced_agents:
     - swe-1
     - swe-2
@@ -8,3 +8,4 @@ synced_agents:
     - perf-test
     - sre-1
     - secops-1
+    - swe-1-metrics

@@ -1,97 +1,97 @@
+import random
 import time
-import logging
-from locust import User, task, between, events
-from task_management import TaskManager
+from locust import HttpUser, task, between, events
 
-# Disable TaskManager's internal structured logging to keep Locust output clean
-logging.getLogger("task_management").setLevel(logging.ERROR)
+class TaskManagementAPIUser(HttpUser):
+    wait_time = between(1, 2)
+    token = None
+    username = None
 
-def heavy_task():
-    """Simulates a task that takes some time and resources."""
-    # Fibonacci calculation to consume some CPU
-    def fib(n):
-        if n <= 1: return n
-        return fib(n-1) + fib(n-2)
-    fib(20) 
-    return "completed"
-
-class TaskManagerLoadTest(User):
-    """Simulates users interacting with the TaskManager library."""
-    wait_time = between(0.1, 0.5)
-
-    @task
-    def execute_dag_scenario(self):
-        """Creates a DAG with 5 tasks and multiple dependencies, then executes it."""
-        start_time = time.perf_counter()
-        name = "execute_dag_5_tasks"
+    def on_start(self):
+        """Registers a user and logs in to get a token."""
+        self.username = f"user_{int(time.time())}_{random.randint(0, 1000)}"
+        password = "password123"
         
-        try:
-            manager = TaskManager(max_workers=4)
-            
-            # Define tasks
-            manager.add_task("T1", heavy_task, priority=1)
-            manager.add_task("T2", heavy_task, priority=2)
-            manager.add_task("T3", heavy_task, priority=1)
-            manager.add_task("T4", heavy_task, priority=3)
-            manager.add_task("T5", heavy_task, priority=0)
-            
-            # Define complex dependencies
-            # T1 -> T2
-            # T1 -> T3
-            # T2 -> T4
-            # T3 -> T4
-            # T4 -> T5
-            manager.add_dependency("T1", "T2")
-            manager.add_dependency("T1", "T3")
-            manager.add_dependency("T2", "T4")
-            manager.add_dependency("T3", "T4")
-            manager.add_dependency("T4", "T5")
-            
-            manager.execute_all(timeout=10.0)
-            
-            total_time = (time.perf_counter() - start_time) * 1000
-            events.request.fire(
-                request_type="LibraryCall",
-                name=name,
-                response_time=total_time,
-                response_length=0,
-                exception=None,
-            )
-        except Exception as e:
-            total_time = (time.perf_counter() - start_time) * 1000
-            events.request.fire(
-                request_type="LibraryCall",
-                name=name,
-                response_time=total_time,
-                response_length=0,
-                exception=e,
-            )
+        # Register
+        self.client.post("/register", json={
+            "username": self.username,
+            "password": password,
+            "email": f"{self.username}@example.com"
+        })
+        
+        # Login
+        response = self.client.post("/token", data={
+            "username": self.username,
+            "password": password
+        })
+        if response.status_code == 200:
+            self.token = response.json()["access_token"]
+            self.headers = {"Authorization": f"Bearer {self.token}"}
+        else:
+            print(f"Failed to login: {response.text}")
 
     @task(3)
-    def simple_task_scenario(self):
-        """Simulates a single high-priority task execution."""
-        start_time = time.perf_counter()
-        name = "execute_single_task"
+    def create_and_execute_dag(self):
+        """Simulates creating a 5-node DAG and executing it."""
+        if not self.token: return
+
+        # 1. Create 5 tasks
+        task_ids = []
+        for i in range(5):
+            name = f"LoadTest_Task_{int(time.time())}_{i}_{random.randint(0, 1000)}"
+            response = self.client.post("/api/tasks", headers=self.headers, json={
+                "name": name,
+                "priority": random.randint(1, 10),
+                "max_retries": 3,
+                "base_delay": 1.0,
+                "dependencies": []
+            })
+            if response.status_code == 200:
+                task_ids.append(response.json()["id"])
         
-        try:
-            manager = TaskManager(max_workers=1)
-            manager.add_task("S1", heavy_task, priority=0)
-            manager.execute_all(timeout=5.0)
-            
-            total_time = (time.perf_counter() - start_time) * 1000
-            events.request.fire(
-                request_type="LibraryCall",
-                name=name,
-                response_time=total_time,
-                response_length=0,
-                exception=None,
-            )
-        except Exception as e:
-            total_time = (time.perf_counter() - start_time) * 1000
-            events.request.fire(
-                request_type="LibraryCall",
-                name=name,
-                response_time=total_time,
-                response_length=0,
-                exception=e,
-            )
+        # 2. Execute all
+        self.client.post("/api/execute", headers=self.headers)
+        
+        # 3. Wait and check status
+        for _ in range(3):
+            time.sleep(1)
+            response = self.client.get("/api/tasks", headers=self.headers)
+            if response.status_code == 200:
+                tasks = response.json()
+                our_tasks = [t for t in tasks if t["id"] in task_ids]
+                if all(t["status"] == "COMPLETED" for t in our_tasks):
+                    break
+
+    @task(1)
+    def check_metrics(self):
+        """Probes the /metrics endpoint (F-0010 verification)."""
+        # Metrics endpoint is public based on main.py
+        with self.client.get("/metrics", catch_response=True) as response:
+            if response.status_code == 200:
+                content = response.text
+                expected_metrics = [
+                    "task_manager_tasks_total",
+                    "task_manager_task_latency_seconds",
+                    "task_manager_queue_depth",
+                    "task_manager_process_cpu_percent",
+                    "task_manager_process_memory_bytes"
+                ]
+                missing = [m for m in expected_metrics if m not in content]
+                if not missing:
+                    response.success()
+                else:
+                    response.failure(f"Prometheus metrics missing: {', '.join(missing)}")
+            else:
+                response.failure(f"Metrics endpoint returned {response.status_code}")
+
+    @task(5)
+    def get_tasks_list(self):
+        """High frequency task to simulate dashboard polling."""
+        if not self.token: return
+        self.client.get("/api/tasks", headers=self.headers)
+
+    @task(2)
+    def check_logs(self):
+        """Simulates log viewer polling."""
+        if not self.token: return
+        self.client.get("/api/logs?limit=50", headers=self.headers)
