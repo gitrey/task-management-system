@@ -76,3 +76,9 @@
 - Updated AI Service to use 'gemini-flash-latest' for improved stability and compatibility.
 - Fixed regression in SQLite error handling in 'test_task_management.py'.
 - All Milestone 4 features are now fully verified and integrated.
+
+## 2026-05-08
+- Received Milestone 5 product specs (Cloud Migration & GKE Deployment) from PM.
+- Merged feature branch `feature/milestone-5-specs` into `scion/tpm`.
+- Restored Milestone 4 content in `docs/BACKLOG.md` and added granular technical sub-tasks for F-0011, F-0012, and F-0013.
+- Milestone 5 is now IN PROGRESS.
