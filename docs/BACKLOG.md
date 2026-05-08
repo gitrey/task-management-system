@@ -84,21 +84,21 @@
     - [x] Final security scan and OpenAPI spec generation (Secops-1)
 
 ## Milestone 5: Cloud Migration & GKE Deployment
-- [ ] **F-0011: GCP Infrastructure Provisioning (TBD)**
+- [ ] **F-0011: GCP Infrastructure Provisioning (GENDEV-102)**
   - **Priority:** P1
   - **Scope:** Terraform configurations for private VPC, GKE Autopilot, and Cloud SQL.
   - **Dependencies:** GCP Access
   - **Spec:** [spec](docs/specs/F-0011-gcp-infrastructure-terraform.md)
-  - **Status:** DRAFT
-- [ ] **F-0012: Kubernetes Manifests (TBD)**
+  - **Status:** TO DO
+- [ ] **F-0012: Kubernetes Manifests (GENDEV-103)**
   - **Priority:** P1
   - **Scope:** Declarative GKE descriptors (Deployment, Service, Ingress, Secrets).
   - **Dependencies:** F-0011
   - **Spec:** [spec](docs/specs/F-0012-kubernetes-manifests-gke.md)
-  - **Status:** DRAFT
-- [ ] **F-0013: PostgreSQL Migration (TBD)**
+  - **Status:** TO DO
+- [ ] **F-0013: PostgreSQL Migration (GENDEV-104)**
   - **Priority:** P1
   - **Scope:** Schema design and backend refactor for PostgreSQL/Cloud SQL support.
   - **Dependencies:** F-0011
   - **Spec:** [spec](docs/specs/F-0013-postgresql-migration.md)
-  - **Status:** DRAFT
+  - **Status:** TO DO

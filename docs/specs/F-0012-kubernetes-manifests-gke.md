@@ -1,8 +1,8 @@
-# F-0012: Kubernetes Manifests (GKE)
+# F-0012: Kubernetes Manifests (GKE) (GENDEV-103)
 
 - **Type:** Feature
 - **Priority:** P1
-- **Status:** Draft
+- **Status:** Approved
 
 ## Problem
 To deploy the application to GKE, we need declarative Kubernetes descriptors that define how the application should be run, exposed, and secured within the cluster.

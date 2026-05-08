@@ -1,8 +1,8 @@
-# F-0011: GCP Infrastructure Provisioning (Terraform)
+# F-0011: GCP Infrastructure Provisioning (Terraform) (GENDEV-102)
 
 - **Type:** Feature
 - **Priority:** P1
-- **Status:** Draft
+- **Status:** Approved
 
 ## Problem
 The application currently runs in local containers or Cloud Run. We need a more robust, private, and scalable infrastructure on GCP using GKE and Cloud SQL, managed via declarative Infrastructure as Code (IaC).

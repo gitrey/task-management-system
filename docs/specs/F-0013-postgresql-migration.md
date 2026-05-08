@@ -1,8 +1,8 @@
-# F-0013: Database Migration to PostgreSQL
+# F-0013: Database Migration to PostgreSQL (GENDEV-104)
 
 - **Type:** Feature
 - **Priority:** P1
-- **Status:** Draft
+- **Status:** Approved
 
 ## Problem
 The current application uses SQLite for local state management. For a scalable cloud deployment, we need to transition to a more robust RDBMS like PostgreSQL and ensure the application can connect to it dynamically.
