@@ -11,7 +11,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from .manager import TaskManager
 from .models import Task, TaskStatus, TaskCreateRequest, User, Project
 from .retry import RetryPolicy
-from .persistence import SQLiteStateStore
+from .persistence import SQLiteStateStore, PostgreSQLStateStore
 from .metrics import get_metrics_data
 from .auth import create_access_token, decode_access_token, verify_password, get_password_hash
 from .ai_service import AIService
@@ -31,7 +31,12 @@ app.add_middleware(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Initialize Services
-store = SQLiteStateStore("tasks.db")
+db_url = os.environ.get("DATABASE_URL")
+if db_url and (db_url.startswith("postgres://") or db_url.startswith("postgresql://")):
+    store = PostgreSQLStateStore(db_url)
+else:
+    store = SQLiteStateStore(os.environ.get("SQLITE_DB_PATH", "tasks.db"))
+
 manager = TaskManager(state_store=store)
 ai_service = AIService()
 scheduler = TaskScheduler(manager)
@@ -63,27 +68,26 @@ async def readyz():
     """Readiness probe."""
     components = {
         "database": "disconnected",
-        "storage": "readonly"
     }
     is_ready = True
     
     try:
         # Check database connection
-        with manager.state_store.conn as conn:
-            conn.execute("SELECT 1")
-        components["database"] = "connected"
-    except Exception:
-        components["database"] = "error"
-        is_ready = False
-
-    try:
-        # Check storage write access
-        if os.access(manager.state_store.db_path, os.W_OK):
-            components["storage"] = "writable"
-        else:
-            is_ready = False
-    except Exception:
-        components["storage"] = "error"
+        if isinstance(store, SQLiteStateStore):
+            with store.conn as conn:
+                conn.execute("SELECT 1")
+            components["database"] = "connected (sqlite)"
+            if os.access(store.db_path, os.W_OK):
+                components["storage"] = "writable"
+            else:
+                is_ready = False
+        elif isinstance(store, PostgreSQLStateStore):
+            with store.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT 1")
+            components["database"] = "connected (postgres)"
+    except Exception as e:
+        components["database"] = f"error: {str(e)}"
         is_ready = False
 
     if not is_ready:
