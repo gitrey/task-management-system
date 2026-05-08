@@ -1,6 +1,7 @@
 import enum
 import uuid
 from typing import Callable, Any, Set, Optional
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TaskStatus(enum.Enum):
@@ -20,7 +21,28 @@ class TaskCycleError(Exception):
     pass
 
 
-from pydantic import BaseModel, ConfigDict, Field
+class TaskCreateRequest(BaseModel):
+    """Request model for creating a new task."""
+
+    name: str = Field(..., min_length=1, max_length=100)
+    project_id: Optional[str] = None
+    priority: int = Field(default=5, ge=1, le=10)
+    max_retries: int = Field(default=3, ge=0)
+    base_delay: float = Field(default=1.0, gt=0)
+    dependencies: Set[str] = Field(default_factory=set)
+
+
+class User(BaseModel):
+    user_id: str
+    username: str
+    email: Optional[str] = None
+    hashed_password: str
+
+
+class Project(BaseModel):
+    project_id: str
+    name: str
+    owner_id: str
 
 
 class Task(BaseModel):
@@ -28,6 +50,8 @@ class Task(BaseModel):
 
     Attributes:
         task_id: Unique identifier for the task.
+        project_id: ID of the project this task belongs to.
+        name: Human-readable name for the task.
         func: The callable to be executed.
         priority: Numerical priority (lower is higher priority).
         status: Current state of the task.
@@ -43,6 +67,8 @@ class Task(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     task_id: str
+    project_id: Optional[str] = None
+    name: Optional[str] = None
     func: Optional[Callable] = None
     priority: int = 0
     status: TaskStatus = TaskStatus.PENDING

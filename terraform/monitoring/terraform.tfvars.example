@@ -1,0 +1,5 @@
+project_id              = "your-project-id"
+region                  = "us-central1"
+backend_host            = "task-management.a.run.app"
+container_image         = "gcr.io/your-project-id/task-management-system:latest"
+notification_channel_id = "projects/your-project-id/notificationChannels/123456789"

@@ -10,6 +10,7 @@ from .models import TaskStatus, Task, TaskCycleError
 from .logging import StructuredLogger
 from .persistence import StateStore
 from .retry import RetryPolicy
+from .metrics import TASK_TOTAL, TASK_LATENCY, QUEUE_DEPTH
 
 
 class TaskManager:
@@ -43,9 +44,36 @@ class TaskManager:
         self.state_store = state_store
         self._shutdown_requested = False
 
+        # Load persisted tasks if state_store is provided
+        if self.state_store:
+            self._load_from_store()
+
         # Graceful shutdown signals
         signal.signal(signal.SIGINT, self._handle_signal)
         signal.signal(signal.SIGTERM, self._handle_signal)
+
+    def _load_from_store(self):
+        """Loads task state from the persistent store and restores the DAG."""
+        stored_tasks = self.state_store.load_tasks()
+        for task_id, task_data in stored_tasks.items():
+            # Extract retry policy data
+            rp_data = task_data.pop("retry_policy", {})
+            retry_policy = RetryPolicy(**rp_data) if rp_data else None
+
+            # For restored tasks, we assign a dummy function as we can't persist callables
+            def restored_dummy():
+                time.sleep(1)
+                return f"Restored result for {task_id}"
+
+            task = Task(
+                **task_data, func=restored_dummy, retry_policy=retry_policy
+            )
+            self.tasks[task_id] = task
+            QUEUE_DEPTH.labels(state=task.status.value).inc()
+
+        self.logger.log(
+            logging.INFO, "Restored tasks from state store", count=len(self.tasks)
+        )
 
     def _handle_signal(self, signum, frame):
         """Internal signal handler for graceful shutdown.
@@ -70,6 +98,7 @@ class TaskManager:
         func: Callable,
         priority: int = 0,
         retry_policy: Optional[RetryPolicy] = None,
+        project_id: Optional[str] = None,
     ) -> None:
         """Adds a new task to the system.
 
@@ -78,6 +107,7 @@ class TaskManager:
             func: The callable to be executed.
             priority: Numerical priority (lower is higher priority). Defaults to 0.
             retry_policy: Optional retry configuration.
+            project_id: Optional project identifier for multi-tenancy.
 
         Raises:
             ValueError: If a task with the same ID already exists.
@@ -90,8 +120,10 @@ class TaskManager:
                 func=func,
                 priority=priority,
                 retry_policy=retry_policy,
+                project_id=project_id,
             )
             self.tasks[task_id] = task
+            QUEUE_DEPTH.labels(state=TaskStatus.PENDING.value).inc()
             if self.state_store:
                 self.state_store.save_task(task)
             self.logger.log(
@@ -176,7 +208,9 @@ class TaskManager:
         ):
             return
 
+        QUEUE_DEPTH.labels(state=task.status.value).dec()
         task.status = TaskStatus.CANCELLED
+        QUEUE_DEPTH.labels(state=task.status.value).inc()
         if self.state_store:
             self.state_store.save_task(task)
         if task_id in self.futures:
@@ -227,10 +261,14 @@ class TaskManager:
         self.logger.log(
             logging.INFO, "Executing task", task_id=task_id, trace_id=task.trace_id
         )
+        start_time = time.time()
         try:
             res = task.func()
             with self.lock:
+                QUEUE_DEPTH.labels(state=task.status.value).dec()
                 task.status = TaskStatus.COMPLETED
+                QUEUE_DEPTH.labels(state=task.status.value).inc()
+                TASK_TOTAL.labels(status="success").inc()
                 task.result = res
                 if self.state_store:
                     self.state_store.save_task(task)
@@ -240,9 +278,11 @@ class TaskManager:
         except Exception as e:
             with self.lock:
                 task.error = e
+                QUEUE_DEPTH.labels(state=task.status.value).dec()
                 if task.retries < task.retry_policy.max_retries:
                     task.retries += 1
                     task.status = TaskStatus.RETRYING
+                    QUEUE_DEPTH.labels(state=task.status.value).inc()
                     delay = task.retry_policy.get_delay(task.retries)
                     self.logger.log(
                         logging.WARNING,
@@ -256,6 +296,8 @@ class TaskManager:
                     threading.Timer(delay, self._mark_ready, args=[task_id]).start()
                 else:
                     task.status = TaskStatus.FAILED
+                    QUEUE_DEPTH.labels(state=task.status.value).inc()
+                    TASK_TOTAL.labels(status="failure").inc()
                     self.logger.log(
                         logging.ERROR,
                         "Task failed permanently",
@@ -268,6 +310,8 @@ class TaskManager:
                 if self.state_store:
                     self.state_store.save_task(task)
         finally:
+            latency = time.time() - start_time
+            TASK_LATENCY.labels(task_id=task_id).observe(latency)
             with self.lock:
                 self._condition.notify_all()
 
@@ -308,7 +352,9 @@ class TaskManager:
 
                 ready_tasks = self._get_ready_tasks()
                 for task in ready_tasks:
+                    QUEUE_DEPTH.labels(state=task.status.value).dec()
                     task.status = TaskStatus.RUNNING
+                    QUEUE_DEPTH.labels(state=task.status.value).inc()
                     self.futures[task.task_id] = self.executor.submit(
                         self._task_wrapper, task.task_id
                     )

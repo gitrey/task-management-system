@@ -1,6 +1,6 @@
 from .models import TaskStatus, Task, TaskCycleError
 from .manager import TaskManager
-from .persistence import StateStore, SQLiteStateStore
+from .persistence import StateStore, SQLiteStateStore, PostgreSQLStateStore
 from .retry import RetryPolicy
 from .logging import StructuredLogger
 
@@ -11,6 +11,7 @@ __all__ = [
     "TaskManager",
     "StateStore",
     "SQLiteStateStore",
+    "PostgreSQLStateStore",
     "RetryPolicy",
     "StructuredLogger",
 ]
