@@ -1,6 +1,7 @@
--- Relational database schema for Task Management System
+-- V3: Advanced Scheduling and Multi-Tenancy
 
-CREATE TABLE IF NOT EXISTS users (
+-- 1. Create Users Table for F-0009
+CREATE TABLE users (
     user_id TEXT PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
@@ -8,7 +9,8 @@ CREATE TABLE IF NOT EXISTS users (
     created_at REAL DEFAULT (strftime('%s', 'now'))
 );
 
-CREATE TABLE IF NOT EXISTS projects (
+-- 2. Create Projects Table for F-0009
+CREATE TABLE projects (
     project_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     owner_id TEXT NOT NULL,
@@ -16,7 +18,8 @@ CREATE TABLE IF NOT EXISTS projects (
     FOREIGN KEY (owner_id) REFERENCES users (user_id)
 );
 
-CREATE TABLE IF NOT EXISTS project_members (
+-- 3. Create Project Members Table for F-0009
+CREATE TABLE project_members (
     project_id TEXT NOT NULL,
     user_id TEXT NOT NULL,
     PRIMARY KEY (project_id, user_id),
@@ -24,7 +27,8 @@ CREATE TABLE IF NOT EXISTS project_members (
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS schedules (
+-- 4. Create Schedules Table for F-0008
+CREATE TABLE schedules (
     schedule_id TEXT PRIMARY KEY,
     project_id TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -36,9 +40,14 @@ CREATE TABLE IF NOT EXISTS schedules (
     FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS tasks (
+-- 5. Update tasks table for Multi-tenancy and Scheduling
+-- Since SQLite doesn't support adding FKs to existing tables, we recreate it.
+
+PRAGMA foreign_keys=OFF;
+
+CREATE TABLE tasks_new (
     task_id TEXT PRIMARY KEY,
-    project_id TEXT NOT NULL,
+    project_id TEXT NOT NULL, -- All tasks must belong to a project now
     schedule_id TEXT,
     priority INTEGER DEFAULT 0,
     status TEXT DEFAULT 'PENDING',
@@ -55,32 +64,30 @@ CREATE TABLE IF NOT EXISTS tasks (
     FOREIGN KEY (schedule_id) REFERENCES schedules (schedule_id) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS task_dependencies (
-    task_id TEXT NOT NULL,
-    depends_on_task_id TEXT NOT NULL,
-    PRIMARY KEY (task_id, depends_on_task_id),
-    FOREIGN KEY (task_id) REFERENCES tasks (task_id) ON DELETE CASCADE,
-    FOREIGN KEY (depends_on_task_id) REFERENCES tasks (task_id) ON DELETE CASCADE
-);
+-- Note: We need a default project for existing tasks to migrate safely
+-- We'll insert a placeholder user and project in the same transaction.
+INSERT INTO users (user_id, username, email, password_hash) 
+VALUES ('system-user', 'system', 'system@example.com', 'N/A');
 
-CREATE INDEX IF NOT EXISTS idx_task_dependencies_task_id ON task_dependencies(task_id);
-CREATE INDEX IF NOT EXISTS idx_task_dependencies_depends_on_task_id ON task_dependencies(depends_on_task_id);
-CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id);
-CREATE INDEX IF NOT EXISTS idx_tasks_schedule_id ON tasks(schedule_id);
-CREATE INDEX IF NOT EXISTS idx_schedules_project_id ON schedules(project_id);
+INSERT INTO projects (project_id, name, owner_id) 
+VALUES ('default-project', 'Default Project', 'system-user');
 
-CREATE TABLE IF NOT EXISTS logs (
-    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp REAL NOT NULL,
-    level TEXT NOT NULL,
-    event TEXT NOT NULL,
-    task_id TEXT,
-    trace_id TEXT,
-    message TEXT,
-    details TEXT, -- JSON string for additional metadata
-    FOREIGN KEY (task_id) REFERENCES tasks (task_id) ON DELETE SET NULL
-);
+-- Copy existing tasks to new table
+INSERT INTO tasks_new (
+    task_id, project_id, priority, status, retries, max_retries, 
+    base_delay, max_delay, result, error, trace_id
+)
+SELECT 
+    task_id, 'default-project', priority, status, retries, max_retries, 
+    base_delay, max_delay, result, error, trace_id
+FROM tasks;
 
-CREATE INDEX IF NOT EXISTS idx_logs_task_id ON logs(task_id);
-CREATE INDEX IF NOT EXISTS idx_logs_trace_id ON logs(trace_id);
-CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp);
+DROP TABLE tasks;
+ALTER TABLE tasks_new RENAME TO tasks;
+
+PRAGMA foreign_keys=ON;
+
+-- 6. Add indexes
+CREATE INDEX idx_tasks_project_id ON tasks(project_id);
+CREATE INDEX idx_schedules_project_id ON schedules(project_id);
+CREATE INDEX idx_tasks_schedule_id ON tasks(schedule_id);
