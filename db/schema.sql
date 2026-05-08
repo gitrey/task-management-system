@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     task_id TEXT PRIMARY KEY,
     project_id TEXT NOT NULL,
     schedule_id TEXT,
+    name TEXT,
     priority INTEGER DEFAULT 0,
     status TEXT DEFAULT 'PENDING',
     retries INTEGER DEFAULT 0,

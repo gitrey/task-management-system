@@ -32,3 +32,18 @@
 - Verified SQL scripts using Python's `sqlite3` module.
 - Fulfilled urgent request from TPM: Pushed database assets (Milestone 4 schema) to `scion/tpm` branch.
 - Updated `docs/BACKLOG.md` marking DB tasks as COMPLETED and Milestone 3 as IN PROGRESS.
+- SWE-2 implemented frontend components for Milestone 3:
+  - Dynamic Task Scheduling Form (F-0003) in `index.html` and `script.js`.
+  - Interactive DAG Graph Visualizer (F-0004) using Cytoscape.js and Dagre layout.
+  - UI control panel for task lifecycle management (F-0005).
+  - Terminal Log Stream Viewer (F-0006) with filtering capabilities.
+  - Integrated modern dashboard layout into `style.css`.
+- Pushed changes to `feature/milestone-3-frontend` and transitioned JIRA tickets to IN PROGRESS/IN REVIEW.
+- SWE-1 implemented backend for Milestone 3:
+  - Developed FastAPI application in `task_management/main.py` with endpoints for task management and log streaming.
+  - Aligned Pydantic models in `task_management/models.py` with frontend requirements (F-0003).
+  - Updated `task_management/persistence.py` to use a relational schema for tasks and dependencies.
+  - Enhanced `task_management/manager.py` to support persistent state loading on startup.
+  - Updated `task_management/logging.py` with an in-memory buffer for real-time log streaming (F-0006).
+  - Implemented `/healthz` and `/readyz` endpoints for infrastructure probes.
+  - Verified API integration with 10-node seed DAG.

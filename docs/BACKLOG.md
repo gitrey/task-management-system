@@ -33,48 +33,86 @@
     - [x] Brief all agents on new role refinements and sync protocols (Assigned: TPM)
 
 ## Milestone 3: Interactive Dashboard
-- [ ] **F-0003: Dynamic Task Scheduling Form (GENDEV-93)**
+
+- [x] **F-0003: Dynamic Task Scheduling Form (GENDEV-93)**
   - **Priority:** P1
   - **Scope:** Web form for task creation with Pydantic validation.
   - **Dependencies:** Backend API
   - **Spec:** [spec](docs/specs/F-0003-dynamic-task-scheduling-form.md)
-  - **Status:** IN PROGRESS
+  - **Status:** COMPLETED
   - **Tasks:**
     - [x] Create SQLite migrations for task and dependency tables (DB-1)
-    - [ ] Implement Pydantic models for task validation (SWE-1)
-    - [ ] Develop dynamic HTML form with interactive field validation (SWE-2)
-    - [ ] Add unit tests for form validation logic (SWE-Test)
-- [ ] **F-0004: Interactive DAG Graph Visualizer (GENDEV-94)**
+    - [x] Implement Pydantic models for task validation (SWE-1)
+    - [x] Develop dynamic HTML form with interactive field validation (SWE-2)
+    - [x] Add unit tests for form validation logic (SWE-Test)
+
+- [x] **F-0004: Interactive DAG Graph Visualizer (GENDEV-94)**
   - **Priority:** P1
   - **Scope:** Real-time DAG visualization using Cytoscape.js.
   - **Dependencies:** F-0003
   - **Spec:** [spec](docs/specs/F-0004-dag-graph-visualizer.md)
-  - **Status:** IN PROGRESS
+  - **Status:** COMPLETED
   - **Tasks:**
     - [x] Seed 10-node DAG dataset for visualization testing (DB-1)
-    - [ ] Integrate Cytoscape.js and implement basic graph layout (SWE-2)
-    - [ ] Add interactive nodes with state-based color coding (SWE-2)
-    - [ ] Capture baseline and interaction-state screenshots (UI-Test)
-- [ ] **F-0005: Task Management Controls & API (GENDEV-95)**
+    - [x] Integrate Cytoscape.js and implement basic graph layout (SWE-2)
+    - [x] Add interactive nodes with state-based color coding (SWE-2)
+    - [x] Capture baseline and interaction-state screenshots (UI-Test)
+
+- [x] **F-0005: Task Management Controls & API (GENDEV-95)**
   - **Priority:** P1
   - **Scope:** Controls for cancel/retry and execution API.
   - **Dependencies:** F-0004
   - **Spec:** [spec](docs/specs/F-0005-task-management-controls.md)
-  - **Status:** TO DO
+  - **Status:** COMPLETED
   - **Tasks:**
-    - [ ] Implement REST API endpoints for task lifecycle (cancel, retry) (SWE-1)
-    - [ ] Add UI control panel with interactive buttons (SWE-2)
-    - [ ] Verify API coverage >= 90% (SWE-Test)
-    - [ ] Run Locust load test (p95 < 200ms) (Perf-Test)
-- [ ] **F-0006: Terminal Log Stream Viewer (GENDEV-96)**
+    - [x] Implement REST API endpoints for task lifecycle (cancel, retry) (SWE-1)
+    - [x] Add UI control panel with interactive buttons (SWE-2)
+    - [x] Verify API coverage >= 90% (SWE-Test)
+    - [x] Run Locust load test (p95 < 200ms) (Perf-Test)
+
+- [x] **F-0006: Terminal Log Stream Viewer (GENDEV-96)**
   - **Priority:** P1
   - **Scope:** Dark-mode terminal log viewer with filtering.
   - **Dependencies:** JSON logging
   - **Spec:** [spec](docs/specs/F-0006-terminal-log-viewer.md)
-  - **Status:** IN PROGRESS
+  - **Status:** COMPLETED
   - **Tasks:**
     - [x] Create logs table migration and seed sample logs (DB-1)
-    - [ ] Update logging module to support JSON streaming (SWE-1)
-    - [ ] Implement frontend log viewer component with filtering (SWE-2)
-    - [ ] Add health/ready checks for deployment (SRE-1)
-    - [ ] Final security scan and OpenAPI spec generation (Secops-1)
+    - [x] Update logging module to support JSON streaming (SWE-1)
+    - [x] Implement frontend log viewer component with filtering (SWE-2)
+    - [x] Add health/ready checks for deployment (SRE-1)
+    - [x] Final security scan and OpenAPI spec generation (Secops-1)
+
+## Milestone 4: Operational Maturity & Intelligence
+- [ ] **F-0007: AI-Assisted DAG Generation (GENDEV-97)**
+  - **Priority:** P2
+  - **Scope:** LLM integration for natural language workflow generation.
+  - **Dependencies:** F-0004
+  - **Spec:** [spec](docs/specs/F-0007-ai-dag-generation.md)
+  - **Status:** TO DO
+- [ ] **F-0008: Advanced Scheduling (GENDEV-98)**
+  - **Priority:** P1
+  - **Scope:** Cron and interval-based recurring task execution.
+  - **Dependencies:** SQLite
+  - **Spec:** [spec](docs/specs/F-0008-advanced-scheduling.md)
+  - **Status:** IN PROGRESS
+  - **Tasks:**
+    - [x] Design scheduling schema and migration (DB-1)
+    - [ ] Implement APScheduler integration (SWE-1)
+    - [ ] Add scheduling fields to task creation form (SWE-2)
+- [ ] **F-0009: Security & Multi-tenancy (GENDEV-99)**
+  - **Priority:** P1
+  - **Scope:** OAuth2/JWT authentication and project isolation.
+  - **Dependencies:** FastAPI
+  - **Spec:** [spec](docs/specs/F-0009-security-multi-tenancy.md)
+  - **Status:** IN PROGRESS
+  - **Tasks:**
+    - [x] Design multi-tenancy schema (Users, Projects) and migration (DB-1)
+    - [ ] Implement JWT authentication and login API (SWE-1)
+    - [ ] Add project selection and user management to UI (SWE-2)
+- [ ] **F-0010: Observability (GENDEV-100)**
+  - **Priority:** P2
+  - **Scope:** Prometheus metrics and Grafana dashboard.
+  - **Dependencies:** Infrastructure support
+  - **Spec:** [spec](docs/specs/F-0010-observability.md)
+  - **Status:** TO DO
