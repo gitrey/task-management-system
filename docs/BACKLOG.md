@@ -83,6 +83,58 @@
     - [x] Add health/ready checks for deployment (SRE-1)
     - [x] Final security scan and OpenAPI spec generation (Secops-1)
 
+## Milestone 4: Operational Maturity & Intelligence
+- [x] **F-0007: AI-Assisted DAG Generation (GENDEV-97)**
+  - **Priority:** P2
+  - **Scope:** LLM integration for natural language workflow generation.
+  - **Dependencies:** F-0004
+  - **Spec:** [spec](docs/specs/F-0007-ai-dag-generation.md)
+  - **Status:** COMPLETED
+  - **Tasks:**
+    - [x] Create LLM integration service using Google Vertex AI/Gemini (SWE-1)
+    - [x] Implement backend endpoint for natural language workflow parsing (SWE-1)
+    - [x] Add "Generate Workflow" UI component to the dashboard (SWE-2)
+    - [x] Integrate visual preview logic using existing DAG visualizer (SWE-2)
+    - [x] Verify AI-generated DAG correctness with edge-case descriptions (SWE-Test)
+- [x] **F-0008: Advanced Scheduling (GENDEV-98)**
+  - **Priority:** P1
+  - **Scope:** Cron and interval-based recurring task execution.
+  - **Dependencies:** SQLite
+  - **Spec:** [spec](docs/specs/F-0008-advanced-scheduling.md)
+  - **Status:** COMPLETED
+  - **Tasks:**
+    - [x] Add `schedule` column to database tasks table (DB-1)
+    - [x] Integrate APScheduler into the backend TaskManager (SWE-1)
+    - [x] Implement recurring task trigger and persistence logic (SWE-1)
+    - [x] Update task creation form to support Cron/Interval inputs (SWE-2)
+    - [x] Add "Upcoming Runs" view to the dashboard (SWE-2)
+- [x] **F-0009: Security & Multi-tenancy (GENDEV-99)**
+  - **Priority:** P1
+  - **Scope:** OAuth2/JWT authentication and project isolation.
+  - **Dependencies:** FastAPI
+  - **Spec:** [spec](docs/specs/F-0009-security-multi-tenancy.md)
+  - **Status:** COMPLETED
+  - **Tasks:**
+    - [x] Design and implement Users and Projects database schema (DB-1)
+    - [x] Implement JWT-based authentication in FastAPI (SWE-1)
+    - [x] Add multi-tenancy filters to all task management queries (SWE-1)
+    - [x] Create Login page and session management in the frontend (SWE-2)
+    - [x] Add project selection and management UI (SWE-2)
+    - [x] Run security scan for authentication bypass vulnerabilities (Secops-1)
+- [x] **F-0010: Observability (GENDEV-100)**
+  - **Priority:** P2
+  - **Scope:** Prometheus metrics and Grafana dashboard.
+  - **Dependencies:** Infrastructure support
+  - **Spec:** [spec](docs/specs/F-0010-observability.md)
+  - **Status:** COMPLETED
+  - **Tasks:**
+    - [x] Integrate `prometheus_client` and define core system metrics (SWE-1)
+    - [x] Implement `/metrics` endpoint in FastAPI (SWE-1)
+    - [x] Add resource monitoring (CPU/RAM) to TaskManager (SWE-1)
+    - [x] Create Prometheus configuration and Grafana dashboard JSON (SRE-1)
+    - [x] Finalize backend metrics alignment with SLO specs (SWE-1)
+    - [x] Verify metrics accuracy during high-concurrency load (Perf-Test)
+
 ## Milestone 5: Cloud Migration & GKE Deployment
 - [ ] **F-0011: GCP Infrastructure Provisioning (GENDEV-102)**
   - **Priority:** P1
@@ -90,15 +142,32 @@
   - **Dependencies:** GCP Access
   - **Spec:** [spec](docs/specs/F-0011-gcp-infrastructure-terraform.md)
   - **Status:** TO DO
-- [ ] **F-0012: Kubernetes Manifests (GENDEV-103)**
+  - **Tasks:**
+    - [ ] Design Terraform VPC and Private NAT Gateway configurations (SRE-1)
+    - [ ] Provision GKE Autopilot cluster via Terraform (SRE-1)
+    - [ ] Provision private Cloud SQL (PostgreSQL) instance (DB-1)
+    - [ ] Configure Secret Manager for database credentials (Secops-1)
+    - [ ] Implement IAM Workload Identity for GKE service account (Secops-1)
+- [ ] **F-0012: Kubernetes Manifests (GKE) (GENDEV-103)**
   - **Priority:** P1
   - **Scope:** Declarative GKE descriptors (Deployment, Service, Ingress, Secrets).
   - **Dependencies:** F-0011
   - **Spec:** [spec](docs/specs/F-0012-kubernetes-manifests-gke.md)
   - **Status:** TO DO
+  - **Tasks:**
+    - [ ] Create Kubernetes Deployment manifest with resource limits and probes (DevOps-1)
+    - [ ] Implement GKE Ingress/Gateway for external access (SRE-1)
+    - [ ] Configure SecretProviderClass for Secret Manager integration (Secops-1)
+    - [ ] Verify application health in GKE (SWE-Test)
 - [ ] **F-0013: PostgreSQL Migration (GENDEV-104)**
   - **Priority:** P1
   - **Scope:** Schema design and backend refactor for PostgreSQL/Cloud SQL support.
   - **Dependencies:** F-0011
   - **Spec:** [spec](docs/specs/F-0013-postgresql-migration.md)
   - **Status:** TO DO
+  - **Tasks:**
+    - [ ] Design PostgreSQL schema in `db/schema.sql` (DB-1)
+    - [ ] Update `task_management/persistence.py` to support PostgreSQL (SWE-1)
+    - [ ] Implement PostgreSQL connection pooling and environment-based config (SWE-1)
+    - [ ] Create PostgreSQL-compatible test seed data in `db/data.sql` (DB-1)
+    - [ ] Verify persistence layer tests with PostgreSQL (SWE-Test)
