@@ -141,10 +141,10 @@
   - **Scope:** Terraform configurations for private VPC, GKE Autopilot, and Cloud SQL.
   - **Dependencies:** GCP Access
   - **Spec:** [spec](docs/specs/F-0011-gcp-infrastructure-terraform.md)
-  - **Status:** TO DO
+  - **Status:** IN PROGRESS
   - **Tasks:**
-    - [ ] Design Terraform VPC and Private NAT Gateway configurations (SRE-1)
-    - [ ] Provision GKE Autopilot cluster via Terraform (SRE-1)
+    - [x] Design Terraform VPC and Private NAT Gateway configurations (SRE-1)
+    - [x] Provision GKE Autopilot cluster via Terraform (SRE-1)
     - [ ] Provision private Cloud SQL (PostgreSQL) instance (DB-1)
     - [ ] Configure Secret Manager for database credentials (Secops-1)
     - [ ] Implement IAM Workload Identity for GKE service account (Secops-1)
@@ -153,10 +153,10 @@
   - **Scope:** Declarative GKE descriptors (Deployment, Service, Ingress, Secrets).
   - **Dependencies:** F-0011
   - **Spec:** [spec](docs/specs/F-0012-kubernetes-manifests-gke.md)
-  - **Status:** TO DO
+  - **Status:** IN PROGRESS
   - **Tasks:**
     - [ ] Create Kubernetes Deployment manifest with resource limits and probes (DevOps-1)
-    - [ ] Implement GKE Ingress/Gateway for external access (SRE-1)
+    - [x] Implement GKE Ingress/Gateway for external access (SRE-1)
     - [ ] Configure SecretProviderClass for Secret Manager integration (Secops-1)
     - [ ] Verify application health in GKE (SWE-Test)
 - [ ] **F-0013: PostgreSQL Migration (GENDEV-104)**
