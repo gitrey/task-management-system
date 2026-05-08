@@ -164,10 +164,10 @@
   - **Scope:** Schema design and backend refactor for PostgreSQL/Cloud SQL support.
   - **Dependencies:** F-0011
   - **Spec:** [spec](docs/specs/F-0013-postgresql-migration.md)
-  - **Status:** TO DO
+  - **Status:** IN PROGRESS
   - **Tasks:**
     - [ ] Design PostgreSQL schema in `db/schema.sql` (DB-1)
-    - [ ] Update `task_management/persistence.py` to support PostgreSQL (SWE-1)
-    - [ ] Implement PostgreSQL connection pooling and environment-based config (SWE-1)
+    - [x] Update `task_management/persistence.py` to support PostgreSQL (SWE-1)
+    - [x] Implement PostgreSQL connection pooling and environment-based config (SWE-1)
     - [ ] Create PostgreSQL-compatible test seed data in `db/data.sql` (DB-1)
     - [ ] Verify persistence layer tests with PostgreSQL (SWE-Test)

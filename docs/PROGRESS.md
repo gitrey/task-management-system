@@ -82,3 +82,13 @@
 - Merged feature branch `feature/milestone-5-specs` into `scion/tpm`.
 - Restored Milestone 4 content in `docs/BACKLOG.md` and added granular technical sub-tasks for F-0011, F-0012, and F-0013.
 - Milestone 5 is now IN PROGRESS.
+
+## 2026-05-08 (Session 2)
+- SWE-1 implemented PostgreSQL support for the persistence layer (F-0013):
+  - Created `PostgreSQLStateStore` in `task_management/persistence.py` with `psycopg2-binary`.
+  - Implemented connection pooling using `psycopg2.pool.ThreadedConnectionPool`.
+  - Updated `task_management/main.py` to support dynamic database selection via `DATABASE_URL`.
+  - Enhanced readiness probe (`/readyz`) to handle both SQLite and PostgreSQL stores.
+  - Updated `requirements.txt` with `psycopg2-binary`.
+- Pushed changes to `feature/F-0013-postgresql-migration` and opened PR #5.
+- Transitioned JIRA GENDEV-104 to IN PROGRESS.
