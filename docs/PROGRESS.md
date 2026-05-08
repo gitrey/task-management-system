@@ -47,3 +47,16 @@
   - Updated `task_management/logging.py` with an in-memory buffer for real-time log streaming (F-0006).
   - Implemented `/healthz` and `/readyz` endpoints for infrastructure probes.
   - Verified API integration with 10-node seed DAG.
+
+## 2026-05-08
+- Received Milestone 4 requirements (Advanced Scheduling and Security/Multi-tenancy).
+- Created migration `db/migrations/V3__Advanced_Scheduling_and_Multi_Tenancy.sql`:
+  - Implemented `users`, `projects`, and `project_members` tables for multi-tenancy (F-0009).
+  - Implemented `schedules` table for cron and interval-based recurring tasks (F-0008).
+  - Recreated `tasks` table with `project_id`, `schedule_id`, `name`, `created_at`, and `updated_at` columns.
+  - Added indexes for optimized querying by project and schedule.
+- Updated `db/schema.sql` with final Milestone 4 state.
+- Updated `db/data.sql` with rich seed data including multiple users, projects, and scheduled tasks.
+- Verified all SQL scripts and seed data using a temporary SQLite database.
+- Resolved merge conflicts with `origin/feature/milestone-4-specs`.
+- Updated `docs/BACKLOG.md` marking Milestone 4 database design tasks as COMPLETED.
