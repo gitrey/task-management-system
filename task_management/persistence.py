@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 import sqlite3
 import json
-from typing import Dict
+import queue
+from contextlib import contextmanager
+from typing import Dict, Iterable
 from .models import TaskStatus, Task
 
 
@@ -14,6 +16,15 @@ class StateStore(ABC):
 
         Args:
             task: The Task instance to persist.
+        """
+        pass
+
+    @abstractmethod
+    def save_tasks(self, tasks: Iterable[Task]):
+        """Saves multiple tasks.
+        
+        Args:
+            tasks: Iterable of tasks to persist.
         """
         pass
 
@@ -39,18 +50,36 @@ class SQLiteStateStore(StateStore):
         db_path: Path to the SQLite database file.
     """
 
-    def __init__(self, db_path: str = "tasks.db"):
+    def __init__(self, db_path: str = "tasks.db", pool_size: int = 5):
         """Initializes the SQLite state store.
 
         Args:
             db_path: Path to the SQLite database file. Defaults to "tasks.db".
         """
         self.db_path = db_path
+        self.pool_size = pool_size
+        self._pool = queue.Queue(maxsize=pool_size)
+        for _ in range(pool_size):
+            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn.execute("PRAGMA journal_mode=WAL")
+            self._pool.put(conn)
         self._init_db()
+
+    @contextmanager
+    def _get_connection(self):
+        conn = self._pool.get()
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self._pool.put(conn)
 
     def _init_db(self):
         """Initializes the database schema if it doesn't exist."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._get_connection() as conn:
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS tasks (
@@ -69,10 +98,22 @@ class SQLiteStateStore(StateStore):
         # We exclude 'func' from serialization as it's not JSON serializable and should be re-attached on load
         # However, Task holds 'func'. In a real scenario, you'd store the function path or registry name.
         # For this system, we assume 'func' is provided or restored by the TaskManager.
-        with sqlite3.connect(self.db_path) as conn:
+        with self._get_connection() as conn:
             conn.execute(
                 "INSERT OR REPLACE INTO tasks (task_id, data) VALUES (?, ?)",
                 (task.task_id, task.model_dump_json(exclude={"func", "error"})),
+            )
+
+    def save_tasks(self, tasks: Iterable[Task]):
+        records = []
+        for task in tasks:
+            records.append((task.task_id, task.model_dump_json(exclude={"func", "error"})))
+        if not records:
+            return
+        with self._get_connection() as conn:
+            conn.executemany(
+                "INSERT OR REPLACE INTO tasks (task_id, data) VALUES (?, ?)",
+                records,
             )
 
     def load_tasks(self) -> Dict[str, dict]:
@@ -83,7 +124,7 @@ class SQLiteStateStore(StateStore):
         """
         tasks = {}
         try:
-            with sqlite3.connect(self.db_path) as conn:
+            with self._get_connection() as conn:
                 cursor = conn.execute("SELECT data FROM tasks")
                 for row in cursor:
                     task_data = json.loads(row[0])
@@ -98,5 +139,5 @@ class SQLiteStateStore(StateStore):
 
     def clear(self):
         """Removes all data from the tasks table."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._get_connection() as conn:
             conn.execute("DELETE FROM tasks")
