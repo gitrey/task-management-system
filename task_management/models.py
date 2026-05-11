@@ -55,6 +55,9 @@ class Task(BaseModel):
         None  # Using Any to avoid circular import issues in type hint
     )
     trace_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    progress_pct: int = Field(default=0, ge=0, le=100)
+    parent_id: Optional[str] = None
+    children_ids: Set[str] = Field(default_factory=set)
 
     def __init__(self, **data: Any):
         """Initializes a new Task with Pydantic validation."""

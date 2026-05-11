@@ -338,3 +338,71 @@ class TaskManager:
         """
         with self.lock:
             return self.tasks.get(task_id)
+
+    def update_progress(self, task_id: str, progress_pct: int) -> None:
+        """Updates the progress percentage of a task.
+
+        Args:
+            task_id: The ID of the task to update.
+            progress_pct: The new progress percentage (0-100).
+
+        Raises:
+            ValueError: If the task ID does not exist or progress_pct is out of bounds.
+        """
+        if not (0 <= progress_pct <= 100):
+            raise ValueError("progress_pct must be between 0 and 100")
+            
+        with self.lock:
+            if task_id not in self.tasks:
+                raise ValueError(f"Task {task_id} not found")
+                
+            self.tasks[task_id].progress_pct = progress_pct
+            
+            if self.state_store:
+                self.state_store.save_task(self.tasks[task_id])
+                
+            self.logger.log(
+                logging.INFO, "Task progress updated", task_id=task_id, progress_pct=progress_pct
+            )
+
+    def add_child(self, parent_id: str, child_id: str) -> None:
+        """Adds a parent-child relationship between two tasks.
+
+        Args:
+            parent_id: The ID of the parent task.
+            child_id: The ID of the child task.
+
+        Raises:
+            ValueError: If either task ID does not exist.
+            TaskCycleError: If the relationship would create a hierarchy cycle.
+        """
+        with self.lock:
+            if parent_id not in self.tasks or child_id not in self.tasks:
+                raise ValueError("Both tasks must exist before adding a relationship")
+
+            # Check if this creates a hierarchy cycle
+            curr = parent_id
+            while curr is not None:
+                if curr == child_id:
+                    raise TaskCycleError(
+                        f"Adding child {child_id} to {parent_id} creates a hierarchy cycle"
+                    )
+                curr = self.tasks[curr].parent_id
+
+            # If child already has a parent, remove from old parent
+            old_parent_id = self.tasks[child_id].parent_id
+            if old_parent_id and old_parent_id in self.tasks:
+                self.tasks[old_parent_id].children_ids.discard(child_id)
+                if self.state_store:
+                    self.state_store.save_task(self.tasks[old_parent_id])
+
+            self.tasks[child_id].parent_id = parent_id
+            self.tasks[parent_id].children_ids.add(child_id)
+
+            if self.state_store:
+                self.state_store.save_task(self.tasks[child_id])
+                self.state_store.save_task(self.tasks[parent_id])
+
+            self.logger.log(
+                logging.INFO, "Parent-child relationship added", parent_id=parent_id, child_id=child_id
+            )

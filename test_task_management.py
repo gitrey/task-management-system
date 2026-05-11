@@ -12,6 +12,7 @@ from task_management import (
     TaskCycleError,
     RetryPolicy,
     SQLiteStateStore,
+    export_task_hierarchy,
 )
 from task_management.models import Task
 
@@ -378,3 +379,69 @@ def test_cancel_task_in_futures():
 
     manager.shutdown(wait=False)
     t.join()
+
+def test_task_hierarchy_export():
+    manager = TaskManager()
+    manager.add_task("Root1", lambda: None, priority=2)
+    manager.add_task("Child1", lambda: None, priority=1)
+    manager.add_task("Child2", lambda: None, priority=2)
+    manager.add_task("Root2", lambda: None, priority=1)
+    
+    manager.add_child("Root1", "Child1")
+    manager.add_child("Root1", "Child2")
+    
+    manager.update_progress("Root1", 50)
+    manager.update_progress("Child1", 100)
+    
+    export = export_task_hierarchy(manager)
+    
+    assert export["status"] == "success"
+    assert export["metadata"]["total_tasks"] == 4
+    
+    hierarchy = export["data"]["hierarchy"]
+    assert len(hierarchy) == 2
+    # Roots should be sorted by priority then id: Root2 (1), Root1 (2)
+    assert hierarchy[0]["task_id"] == "Root2"
+    assert hierarchy[1]["task_id"] == "Root1"
+    
+    assert hierarchy[1]["progress_pct"] == 50
+    assert len(hierarchy[1]["children"]) == 2
+    
+    children = hierarchy[1]["children"]
+    assert children[0]["task_id"] == "Child1"
+    assert children[0]["progress_pct"] == 100
+    assert children[1]["task_id"] == "Child2"
+    
+    # Excludes complex objects
+    assert "func" not in hierarchy[0]
+    assert "result" not in hierarchy[0]
+    assert "error" not in hierarchy[0]
+
+def test_add_child_cycle_detection():
+    manager = TaskManager()
+    manager.add_task("A", lambda: None)
+    manager.add_task("B", lambda: None)
+    manager.add_task("C", lambda: None)
+    
+    manager.add_child("A", "B")
+    manager.add_child("B", "C")
+    
+    with pytest.raises(TaskCycleError):
+        manager.add_child("C", "A")
+
+def test_update_progress_bounds():
+    manager = TaskManager()
+    manager.add_task("A", lambda: None)
+    
+    manager.update_progress("A", 50)
+    assert manager.get_task("A").progress_pct == 50
+    
+    with pytest.raises(ValueError):
+        manager.update_progress("A", 150)
+        
+    with pytest.raises(ValueError):
+        manager.update_progress("A", -10)
+        
+    with pytest.raises(ValueError, match="Task B not found"):
+        manager.update_progress("B", 50)
+
