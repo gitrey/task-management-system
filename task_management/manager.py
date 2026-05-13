@@ -42,6 +42,8 @@ class TaskManager:
         self.logger = StructuredLogger()
         self.state_store = state_store
         self._shutdown_requested = False
+        self.in_degree: Dict[str, int] = {}
+        self.ready_queue: List[Task] = []
 
         # Graceful shutdown signals
         signal.signal(signal.SIGINT, self._handle_signal)
@@ -92,6 +94,8 @@ class TaskManager:
                 retry_policy=retry_policy,
             )
             self.tasks[task_id] = task
+            self.in_degree[task_id] = 0
+            heapq.heappush(self.ready_queue, task)
             if self.state_store:
                 self.state_store.save_task(task)
             self.logger.log(
@@ -124,9 +128,12 @@ class TaskManager:
 
             self.tasks[to_task_id].dependencies.add(from_task_id)
             self.tasks[from_task_id].dependents.add(to_task_id)
+            
+            if self.tasks[from_task_id].status not in (TaskStatus.COMPLETED, TaskStatus.CANCELLED, TaskStatus.FAILED):
+                self.in_degree[to_task_id] += 1
             if self.state_store:
-                self.state_store.save_task(self.tasks[to_task_id])
-                self.state_store.save_task(self.tasks[from_task_id])
+                self.state_store.save_tasks([self.tasks[to_task_id], self.tasks[from_task_id]])
+                
             self.logger.log(
                 logging.INFO, "Dependency added", from_id=from_task_id, to_id=to_task_id
             )
@@ -159,10 +166,13 @@ class TaskManager:
             task_id: The unique identifier of the task to cancel.
         """
         with self.lock:
-            self._cancel_task_cascade(task_id)
+            cancelled_tasks = []
+            self._cancel_task_cascade(task_id, cancelled_tasks)
+            if self.state_store and cancelled_tasks:
+                self.state_store.save_tasks(cancelled_tasks)
             self._condition.notify_all()
 
-    def _cancel_task_cascade(self, task_id: str):
+    def _cancel_task_cascade(self, task_id: str, cancelled_tasks: List[Task]):
         """Recursively cancels a task and all tasks that depend on it.
 
         Args:
@@ -177,8 +187,7 @@ class TaskManager:
             return
 
         task.status = TaskStatus.CANCELLED
-        if self.state_store:
-            self.state_store.save_task(task)
+        cancelled_tasks.append(task)
         if task_id in self.futures:
             self.futures[task_id].cancel()
 
@@ -187,7 +196,7 @@ class TaskManager:
         )
 
         for dep_id in list(task.dependents):
-            self._cancel_task_cascade(dep_id)
+            self._cancel_task_cascade(dep_id, cancelled_tasks)
 
     def _get_ready_tasks(self) -> List[Task]:
         """Identifies tasks whose dependencies are met and are ready to run.
@@ -196,20 +205,11 @@ class TaskManager:
             A prioritized list of ready Tasks.
         """
         ready = []
-        for task in self.tasks.values():
-            if task.status in (TaskStatus.PENDING, TaskStatus.RETRYING):
-                all_completed = True
-                for dep_id in task.dependencies:
-                    if self.tasks[dep_id].status != TaskStatus.COMPLETED:
-                        all_completed = False
-                        break
-                if all_completed:
-                    ready.append(task)
-        heapq.heapify(ready)
-        result = []
-        while ready:
-            result.append(heapq.heappop(ready))
-        return result
+        while self.ready_queue:
+            task = heapq.heappop(self.ready_queue)
+            if task.status in (TaskStatus.PENDING, TaskStatus.RETRYING) and self.in_degree[task.task_id] == 0:
+                ready.append(task)
+        return ready
 
     def _task_wrapper(self, task_id: str):
         """Worker wrapper around task execution.
@@ -232,6 +232,10 @@ class TaskManager:
             with self.lock:
                 task.status = TaskStatus.COMPLETED
                 task.result = res
+                for dep_id in task.dependents:
+                    self.in_degree[dep_id] -= 1
+                    if self.in_degree[dep_id] == 0:
+                        heapq.heappush(self.ready_queue, self.tasks[dep_id])
                 if self.state_store:
                     self.state_store.save_task(task)
             self.logger.log(
@@ -254,6 +258,8 @@ class TaskManager:
                         error=str(e),
                     )
                     threading.Timer(delay, self._mark_ready, args=[task_id]).start()
+                    if self.state_store:
+                        self.state_store.save_task(task)
                 else:
                     task.status = TaskStatus.FAILED
                     self.logger.log(
@@ -263,10 +269,11 @@ class TaskManager:
                         trace_id=task.trace_id,
                         error=str(e),
                     )
+                    cancelled_tasks = []
                     for dep_id in list(task.dependents):
-                        self._cancel_task_cascade(dep_id)
-                if self.state_store:
-                    self.state_store.save_task(task)
+                        self._cancel_task_cascade(dep_id, cancelled_tasks)
+                    if self.state_store:
+                        self.state_store.save_tasks([task] + cancelled_tasks)
         finally:
             with self.lock:
                 self._condition.notify_all()
@@ -278,7 +285,9 @@ class TaskManager:
             task_id: The unique identifier of the task now ready for retry.
         """
         with self.lock:
-            if self.tasks[task_id].status == TaskStatus.RETRYING:
+            task = self.tasks.get(task_id)
+            if task and task.status == TaskStatus.RETRYING:
+                heapq.heappush(self.ready_queue, task)
                 self._condition.notify_all()
 
     def execute_all(self, timeout: Optional[float] = None):
@@ -326,6 +335,8 @@ class TaskManager:
         """
         self._is_running = False
         self.executor.shutdown(wait=wait)
+        if self.state_store:
+            self.state_store.stop()
 
     def get_task(self, task_id: str) -> Optional[Task]:
         """Retrieves a task from the manager.
