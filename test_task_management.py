@@ -89,6 +89,7 @@ def test_persistence(tmp_path):
     manager.add_task("P1", lambda: "Result 1")
     manager.execute_all()
 
+    store.flush()
     # Simulate restart by loading from same store
     tasks_data = store.load_tasks()
     assert "P1" in tasks_data
@@ -183,8 +184,10 @@ def test_sqlite_state_store_clear(tmp_path):
     store = SQLiteStateStore(db_file)
     task = Task(task_id="T1", func=lambda: None)
     store.save_task(task)
+    store.flush()
     assert len(store.load_tasks()) == 1
     store.clear()
+    store.flush()
     assert len(store.load_tasks()) == 0
 
 
@@ -195,6 +198,7 @@ def test_manager_with_state_store_dependency(tmp_path):
     manager.add_task("A", lambda: None)
     manager.add_task("B", lambda: None)
     manager.add_dependency("A", "B")
+    store.flush()
 
     tasks = store.load_tasks()
     assert "A" in tasks
@@ -232,7 +236,7 @@ def test_execute_all_timeout():
     manager.execute_all(timeout=0.2)
     duration = time.time() - start
     assert 0.2 <= duration < 1.5
-    manager.shutdown(wait=False)
+    manager.shutdown(wait=True)
 
 
 def test_get_task_missing():
@@ -267,6 +271,7 @@ def test_retry_permanent_failure_with_dependents_and_state_store(tmp_path):
     assert manager.get_task("B").status == TaskStatus.CANCELLED
 
     # Verify it was saved to state store
+    store.flush()
     tasks = store.load_tasks()
     assert tasks["A"]["status"] == TaskStatus.FAILED
 
@@ -352,6 +357,7 @@ def test_cancel_task_with_state_store(tmp_path):
     manager = TaskManager(state_store=store)
     manager.add_task("A", lambda: time.sleep(1))
     manager.cancel_task("A")
+    store.flush()
 
     tasks = store.load_tasks()
     assert tasks["A"]["status"] == TaskStatus.CANCELLED
@@ -376,5 +382,5 @@ def test_cancel_task_in_futures():
     manager.cancel_task("A")
     # manager.futures["A"].cancel() should have been called
 
-    manager.shutdown(wait=False)
+    manager.shutdown(wait=True)
     t.join()

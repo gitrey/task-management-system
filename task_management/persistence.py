@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 import sqlite3
 import json
-from typing import Dict
+import queue
+import threading
+from typing import Dict, List
 from .models import TaskStatus, Task
 
 
@@ -18,6 +20,11 @@ class StateStore(ABC):
         pass
 
     @abstractmethod
+    def save_tasks(self, tasks: List[Task]):
+        """Saves the state of multiple tasks in a single transaction."""
+        pass
+
+    @abstractmethod
     def load_tasks(self) -> Dict[str, dict]:
         """Loads all persisted tasks.
 
@@ -31,6 +38,16 @@ class StateStore(ABC):
         """Clears all persisted task state."""
         pass
 
+    @abstractmethod
+    def flush(self):
+        """Blocks until all asynchronous persistence operations are complete."""
+        pass
+
+    @abstractmethod
+    def stop(self):
+        """Cleanly stops the persistence worker."""
+        pass
+
 
 class SQLiteStateStore(StateStore):
     """SQLite implementation of TaskStateStore.
@@ -39,26 +56,68 @@ class SQLiteStateStore(StateStore):
         db_path: Path to the SQLite database file.
     """
 
-    def __init__(self, db_path: str = "tasks.db"):
+    def __init__(self, db_path: str = "tasks.db", pool_size: int = 5):
         """Initializes the SQLite state store.
 
         Args:
             db_path: Path to the SQLite database file. Defaults to "tasks.db".
+            pool_size: The number of connections to pool.
         """
         self.db_path = db_path
+        self.pool = queue.Queue(maxsize=pool_size)
+        for _ in range(pool_size):
+            conn = sqlite3.connect(db_path, check_same_thread=False)
+            self.pool.put(conn)
+            
         self._init_db()
+        
+        self.save_queue = queue.Queue()
+        self._running = True
+        self.worker_thread = threading.Thread(target=self._persistence_worker, daemon=True)
+        self.worker_thread.start()
 
     def _init_db(self):
         """Initializes the database schema if it doesn't exist."""
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute(
+        conn = self.pool.get()
+        try:
+            with conn:
+                conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS tasks (
+                        task_id TEXT PRIMARY KEY,
+                        data TEXT
+                    )
                 """
-                CREATE TABLE IF NOT EXISTS tasks (
-                    task_id TEXT PRIMARY KEY,
-                    data TEXT
                 )
-            """
-            )
+        finally:
+            self.pool.put(conn)
+
+    def _persistence_worker(self):
+        conn = self.pool.get()
+        try:
+            while self._running:
+                try:
+                    batch = self.save_queue.get(timeout=0.5)
+                except queue.Empty:
+                    continue
+                    
+                if batch is None:
+                    self.save_queue.task_done()
+                    break
+                    
+                try:
+                    with conn:
+                        for task_id, data in batch:
+                            conn.execute(
+                                "INSERT OR REPLACE INTO tasks (task_id, data) VALUES (?, ?)",
+                                (task_id, data),
+                            )
+                except Exception:
+                    pass
+                finally:
+                    self.save_queue.task_done()
+        finally:
+            self.pool.put(conn)
 
     def save_task(self, task: Task):
         """Persists a task's current state as JSON to the SQLite database.
@@ -66,14 +125,14 @@ class SQLiteStateStore(StateStore):
         Args:
             task: The Task instance to save.
         """
-        # We exclude 'func' from serialization as it's not JSON serializable and should be re-attached on load
-        # However, Task holds 'func'. In a real scenario, you'd store the function path or registry name.
-        # For this system, we assume 'func' is provided or restored by the TaskManager.
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute(
-                "INSERT OR REPLACE INTO tasks (task_id, data) VALUES (?, ?)",
-                (task.task_id, task.model_dump_json(exclude={"func", "error"})),
-            )
+        data = task.model_dump_json(exclude={"func", "error"})
+        self.save_queue.put([(task.task_id, data)])
+
+    def save_tasks(self, tasks: List[Task]):
+        if not tasks:
+            return
+        batch = [(t.task_id, t.model_dump_json(exclude={"func", "error"})) for t in tasks]
+        self.save_queue.put(batch)
 
     def load_tasks(self) -> Dict[str, dict]:
         """Loads all tasks from the SQLite database.
@@ -82,21 +141,35 @@ class SQLiteStateStore(StateStore):
             A dictionary mapping task IDs to task data dictionaries.
         """
         tasks = {}
+        conn = self.pool.get()
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("SELECT data FROM tasks")
-                for row in cursor:
-                    task_data = json.loads(row[0])
-                    # Ensure compatibility by casting back to enums and sets
-                    task_data["status"] = TaskStatus(task_data["status"])
-                    task_data["dependencies"] = set(task_data["dependencies"])
-                    task_data["dependents"] = set(task_data["dependents"])
-                    tasks[task_data["task_id"]] = task_data
+            cursor = conn.execute("SELECT data FROM tasks")
+            for row in cursor:
+                task_data = json.loads(row[0])
+                # Ensure compatibility by casting back to enums and sets
+                task_data["status"] = TaskStatus(task_data["status"])
+                task_data["dependencies"] = set(task_data["dependencies"])
+                task_data["dependents"] = set(task_data["dependents"])
+                tasks[task_data["task_id"]] = task_data
         except sqlite3.OperationalError:
             pass
+        finally:
+            self.pool.put(conn)
         return tasks
 
     def clear(self):
         """Removes all data from the tasks table."""
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute("DELETE FROM tasks")
+        conn = self.pool.get()
+        try:
+            with conn:
+                conn.execute("DELETE FROM tasks")
+        finally:
+            self.pool.put(conn)
+
+    def flush(self):
+        self.save_queue.join()
+        
+    def stop(self):
+        self._running = False
+        self.save_queue.put(None)
+        self.worker_thread.join()
